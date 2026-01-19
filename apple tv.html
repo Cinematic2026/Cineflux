@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CineFlux OS | Ultimate Edition</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
+
+    <style>
+        :root { --primary: #3b82f6; --bg: #000; --surface: #0a0a0a; --text: #fff; }
+        /* TEMAS PERSONALIZADOS */
+        body.light-mode { --bg: #f2f2f7; --surface: #ffffff; --text: #000; --primary: #007aff; }
+        body.neon-mode { --bg: #0d001a; --surface: #1a0033; --primary: #ff00ff; --text: #fff; }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); overflow-x: hidden; transition: 0.3s; }
+
+        /* VISTAS */
+        .view { display: none; min-height: 100vh; padding-bottom: 120px; }
+        .view.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* CARDS & GRID EXPLORAR FIX */
+        .section-title { padding: 30px 20px 15px; font-size: 1.1rem; font-weight: 900; color: #555; text-transform: uppercase; }
+        .h-scroll { display: flex; gap: 15px; overflow-x: auto; padding: 0 20px; scrollbar-width: none; }
+        .h-scroll::-webkit-scrollbar { display: none; }
+        .card { min-width: 150px; border-radius: 18px; overflow: hidden; background: var(--surface); border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; aspect-ratio: 2/3; }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        
+        #search-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; padding: 20px; }
+
+        /* NAV BAR */
+        .nav-bar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 450px; height: 75px; background: rgba(10,10,10,0.8); backdrop-filter: blur(20px); border-radius: 40px; display: flex; justify-content: space-around; align-items: center; border: 1px solid rgba(255,255,255,0.1); z-index: 4000; }
+        .nav-item { color: #444; text-align: center; font-size: 0.7rem; font-weight: 800; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item span { display: block; font-size: 1.8rem; }
+
+        /* AJUSTES ITEMS */
+        .setting-group { background: var(--surface); border-radius: 25px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .setting-label { font-size: 13px; font-weight: 600; opacity: 0.7; }
+        .setting-val { font-size: 13px; font-weight: 900; color: var(--primary); }
+
+        /* MODAL */
+        .modal { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; overflow-y: auto; }
+        .legal-modal { position: fixed; inset: 0; background: #000; z-index: 6000; display: none; padding: 40px 25px; }
+
+        /* REPRODUCTOR (GHOST ENGINE - SIN TOCAR) */
+        .viewport { position: relative; width: 100%; max-width: 1100px; aspect-ratio: 16 / 9; background: #000; box-shadow: 0 0 100px rgba(59, 130, 246, 0.15); overflow: hidden; border-radius: 12px; }
+        #vEngine { position: absolute; top: -5%; left: -5%; width: 110%; height: 100%; border: none; }
+        #ghostShield { position: absolute; inset: 0; z-index: 9999; background: rgba(0,0,0,0.01); cursor: pointer; display: flex; justify-content: center; align-items: center; }
+        .status-led { position: absolute; top: 20px; left: 20px; display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 900; color: #3b82f6; text-transform: uppercase; letter-spacing: 2px; z-index: 10000; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div id="lock-screen" class="fixed inset-0 bg-black z-[9999] hidden flex flex-col items-center justify-center">
+        <span class="material-symbols-rounded text-blue-500 text-6xl mb-4 animate-pulse">lock</span>
+        <h2 class="font-black text-xl mb-6">PIN DE ACCESO</h2>
+        <input type="password" id="pin-field" maxlength="4" class="bg-[#111] border-2 border-blue-500 text-white text-4xl text-center w-40 p-4 rounded-2xl tracking-[10px] outline-none">
+        <button onclick="security.unlock()" class="mt-8 bg-blue-500 text-white px-12 py-4 rounded-xl font-black">ENTRAR</button>
+    </div>
+
+    <header class="fixed top-0 w-full h-20 flex items-center justify-between px-8 z-[2000] bg-gradient-to-b from-black to-transparent">
+        <div class="text-2xl font-black text-blue-500 italic tracking-tighter">CINEFLUX</div>
+        <img id="nav-pfp" onclick="app.nav('profile')" src="" class="w-10 h-10 rounded-full border-2 border-blue-500 object-cover cursor-pointer">
+    </header>
+
+    <main id="v-home" class="view active">
+    <div id="hero" class="relative w-full h-[85vh] bg-cover bg-center transition-all duration-700">
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent flex flex-col justify-end p-8">
+            <div id="hero-tag" class="text-blue-500 font-black text-[10px] tracking-[3px] uppercase mb-2">Destacado</div>
+            <h1 id="hero-title" class="text-5xl font-black mb-4 leading-tight max-w-2xl">---</h1>
+            
+            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                <span id="hero-meta">---</span>
+                <span class="text-blue-500">|</span>
+                <span>Dir: <span id="hero-dir" class="text-white">---</span></span>
+                <span class="text-blue-500">|</span>
+                <span>Estudio: <span id="hero-studio" class="text-white">---</span></span>
+                <span class="text-blue-500">|</span>
+                <span>Presupuesto: <span id="hero-budget" class="text-white">---</span></span>
+            </div>
+
+            <p id="hero-sinopsis" class="text-gray-300 text-sm mb-6 line-clamp-3 max-w-xl">---</p>
+            
+            <div class="flex gap-4">
+                <button id="hero-play" class="flex-1 bg-white text-black h-16 rounded-2xl font-black flex items-center justify-center gap-2">
+                    <span class="material-symbols-rounded" style="font-variation-settings:'FILL' 1">play_arrow</span> REPRODUCIR
+                </button>
+                <button onclick="favs.toggleHero()" class="w-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10">
+                    <span id="hero-fav-icon" class="material-symbols-rounded">add</span>
+                </button>
+            </div>
+        </div>
+    </div>
+        <div id="fav-row" class="hidden">
+            <h2 class="section-title">Mi Lista</h2>
+            <div id="fav-container" class="h-scroll"></div>
+        </div>
+        <div id="dynamic-content"></div>
+    </main>
+
+    <main id="v-search" class="view pt-24 px-6">
+        <div class="bg-[#111] p-5 rounded-2xl flex items-center border border-white/5 mb-8">
+            <span class="material-symbols-rounded text-gray-500">search</span>
+            <input type="text" id="search-input" oninput="app.search(this.value)" placeholder="Buscar en la base de datos..." class="bg-transparent border-none outline-none ml-4 w-full text-white font-bold">
+        </div>
+        <div id="search-grid"></div>
+    </main>
+
+    <main id="v-profile" class="view pt-28 px-6">
+        <div class="flex items-center gap-5 mb-10 bg-blue-500/10 p-5 rounded-[30px] border border-blue-500/20">
+            <div class="relative w-20 h-20">
+                <img id="p-img" src="" class="w-full h-full rounded-2xl border-2 border-blue-500 object-cover">
+                <input type="file" id="file-input" hidden accept="image/*" onchange="profile.changePhoto(event)">
+                <div class="absolute -bottom-2 -right-2 bg-blue-500 p-1.5 rounded-full border-2 border-black" onclick="document.getElementById('file-input').click()">
+                    <span class="material-symbols-rounded text-xs text-white">photo_camera</span>
+                </div>
+            </div>
+            <div class="flex-1">
+                <input type="text" id="p-name-input" onblur="profile.saveName(this.value)" class="bg-transparent text-2xl font-black w-full outline-none text-white border-b border-white/10">
+                <p class="text-[9px] font-black text-blue-500 tracking-[3px] uppercase mt-1">Platinum OS User</p>
+            </div>
+        </div>
+
+        <h3 class="text-[10px] font-black text-gray-500 mb-3 ml-2 tracking-[2px]">HARDWARE & SOFTWARE</h3>
+        <div class="setting-group">
+            <div class="setting-item"><span class="setting-label">Hardware</span><span class="setting-val">G-Engine v4.2</span></div>
+            <div class="setting-item"><span class="setting-label">Versión Android</span><span class="setting-val">14.0 (AOSP)</span></div>
+            <div class="setting-item"><span class="setting-label">País Local</span><span id="sys-country" class="setting-val">Cargando...</span></div>
+            <div class="setting-item"><span class="setting-label">Hora Local</span><span id="sys-time" class="setting-val">--:--</span></div>
+            <div class="setting-item"><span class="setting-label">Último Inicio</span><span id="sys-last" class="setting-val">--/--</span></div>
+            <div class="setting-item"><span class="setting-label">Cronómetro App</span><span id="sys-timer" class="setting-val text-green-500">00:00:00</span></div>
+        </div>
+
+        <h3 class="text-[10px] font-black text-gray-500 mb-3 ml-2 tracking-[2px]">PERSONALIZACIÓN</h3>
+        <div class="setting-group">
+            <div class="setting-item">
+                <span class="setting-label">Tema del Sistema</span>
+                <select onchange="ui.setTheme(this.value)" class="bg-transparent font-black text-blue-500 outline-none">
+                    <option value="dark">Dark Ghost</option>
+                    <option value="light">Pure Light</option>
+                    <option value="neon">Neon Cyber</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">Idioma</span>
+                <span class="setting-val">Español (Latam)</span>
+            </div>
+        </div>
+
+        <h3 class="text-[10px] font-black text-gray-500 mb-3 ml-2 tracking-[2px]">SEGURIDAD & LEGAL</h3>
+        <div class="setting-group">
+            <div class="setting-item" onclick="security.setPin()">
+                <span class="setting-label">PIN de Seguridad</span>
+                <span class="material-symbols-rounded text-blue-500">lock</span>
+            </div>
+            <div class="setting-item" onclick="ui.showLegal('privacidad')">
+                <span class="setting-label">Privacidad</span>
+                <span class="material-symbols-rounded">chevron_right</span>
+            </div>
+            <div class="setting-item" onclick="ui.showLegal('dmca')">
+                <span class="setting-label">DMCA</span>
+                <span class="material-symbols-rounded">chevron_right</span>
+            </div>
+            <div class="setting-item" onclick="ui.showLegal('politica')">
+                <span class="setting-label">Política</span>
+                <span class="material-symbols-rounded">chevron_right</span>
+            </div>
+        </div>
+
+        <h3 class="text-[10px] font-black text-gray-500 mb-3 ml-2 tracking-[2px]">CONTACTO Y RED</h3>
+        <div class="grid grid-cols-3 gap-3 mb-10">
+            <a href="mailto:ghost@cineflux.com" class="bg-[#111] p-4 rounded-3xl text-center border border-white/5">
+                <span class="material-symbols-rounded block mb-1 text-red-500">mail</span>
+                <span class="text-[9px] font-bold uppercase">Gmail</span>
+            </a>
+            <a href="#" class="bg-[#111] p-4 rounded-3xl text-center border border-white/5">
+                <span class="material-symbols-rounded block mb-1 text-pink-500">share</span>
+                <span class="text-[9px] font-bold uppercase">TikTok</span>
+            </a>
+            <a href="#" class="bg-[#111] p-4 rounded-3xl text-center border border-white/5">
+                <span class="material-symbols-rounded block mb-1 text-blue-400">send</span>
+                <span class="text-[9px] font-bold uppercase">Telegram</span>
+            </a>
+        </div>
+        
+        <button onclick="app.reset()" class="w-full p-5 text-red-500 font-black text-xs tracking-[2px] uppercase bg-red-500/10 rounded-3xl mb-10">Cerrar Sesión Completa</button>
+    </main>
+
+    <div id="m-movie" class="modal">
+        <div id="m-info-view">
+            <div id="m-banner" class="w-full h-[55vh] bg-cover bg-center relative">
+                <button onclick="app.closeModal()" class="absolute top-8 right-8 bg-black/60 w-12 h-12 rounded-full flex items-center justify-center z-50 backdrop-blur-md">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+            </div>
+
+            <div class="px-8 pb-20 -mt-24 relative z-10">
+                <h1 id="m-title" class="text-4xl font-black mb-2">---</h1>
+                <p id="m-meta" class="text-blue-500 font-black mb-6 uppercase text-[11px] tracking-widest"></p>
+                <p id="m-plot" class="text-gray-400 leading-relaxed mb-8 text-sm"></p>
+
+                <div class="flex gap-4 mb-10">
+                    <button id="m-play-btn" class="flex-1 bg-white text-black h-16 rounded-2xl font-black text-lg transition-transform active:scale-95">REPRODUCIR</button>
+                    <button id="m-fav-btn" class="w-16 bg-[#111] rounded-2xl border border-white/10 flex items-center justify-center"></button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-10">
+                    <div class="bg-[#0a0a0a] p-4 rounded-2xl border border-white/5">
+                        <span class="text-[9px] text-blue-500 font-black block mb-1 tracking-tighter">DIRECTOR</span>
+                        <p id="m-dir" class="text-xs font-bold truncate">---</p>
+                    </div>
+                    <div class="bg-[#0a0a0a] p-4 rounded-2xl border border-white/5">
+                        <span class="text-[9px] text-blue-500 font-black block mb-1 tracking-tighter">ESTUDIO</span>
+                        <p id="m-studio" class="text-xs font-bold truncate">---</p>
+                    </div>
+                    <div class="bg-[#0a0a0a] p-4 rounded-2xl border border-white/5">
+                        <span class="text-[9px] text-blue-500 font-black block mb-1 tracking-tighter">PRESUPUESTO</span>
+                        <p id="m-budget" class="text-xs font-bold">---</p>
+                    </div>
+                    <div class="bg-[#0a0a0a] p-4 rounded-2xl border border-white/5">
+                        <span class="text-[9px] text-blue-500 font-black block mb-1 tracking-tighter">RECAUDACIÓN</span>
+                        <p id="m-revenue" class="text-xs font-bold">---</p>
+                    </div>
+                </div>
+
+                <h3 class="font-black mb-5 text-[10px] tracking-[3px] text-gray-500 uppercase">Reparto Principal</h3>
+                <div id="m-cast" class="flex gap-5 overflow-x-auto pb-6 scrollbar-hide"></div>
+            </div>
+        </div>
+
+        <div id="m-player-view" class="hidden fixed inset-0 bg-black flex flex-col justify-center items-center z-[6000]">
+            <div class="viewport">
+                <div class="status-led"><div class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>Ghost Shield Active</div>
+                <div id="ghostShield" onclick="igniteEngine()"><div class="play-hint"><svg width="35" height="35" viewBox="0 0 24 24" fill="#3b82f6"><path d="M8 5v14l11-7z"/></svg></div></div>
+                <iframe id="vEngine" src="" allow="autoplay; fullscreen" referrerpolicy="no-referrer"></iframe>
+            </div>
+            <button onclick="app.closePlayer()" class="mt-12 bg-white/10 text-white px-10 py-4 rounded-full font-black text-xs uppercase tracking-widest">Salir de la función</button>
+        </div>
+    </div>
+
+    <div id="modal-legal" class="legal-modal">
+        <h1 id="legal-title" class="text-3xl font-black text-blue-500 mb-6 uppercase tracking-tighter"></h1>
+        <div id="legal-body" class="text-gray-400 text-sm leading-relaxed space-y-4 overflow-y-auto max-h-[70vh]"></div>
+        <button onclick="ui.closeLegal()" class="mt-10 w-full bg-blue-500 p-5 rounded-2xl font-black">ENTENDIDO</button>
+    </div>
+
+    <nav class="nav-bar">
+        <div onclick="app.nav('home', this)" class="nav-item active"><span class="material-symbols-rounded">home_max</span>Inicio</div>
+        <div onclick="app.nav('search', this)" class="nav-item"><span class="material-symbols-rounded">explore</span>Explorar</div>
+        <div onclick="app.nav('profile', this)" class="nav-item"><span class="material-symbols-rounded">settings_slow_motion</span>Ajustes</div>
+    </nav>
+
+    <script>
+    const TMDB_KEY = 'b6083b855479a79fd9acdb0a2789f126';
+    let currentID = null;
+
+    // --- 1. CONFIGURACIÓN DEL CATÁLOGO ---
+    const CATALOGO = [
+        { id: 1522377, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
+        { id: 1180831, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
+        { id: 1547050, link: "https://yuguaab.com/e/3urdbixpgqjr", categoria: "Estreno" },
+        { id: 1242898, link: "https://vimeos.net/embed-gifb0mvp14aw.html", categoria: "Estreno" },
+        { id: 339849, link: "https://doo.lat/collector.php?h=038_ZjqGVZXep9JK_laSNifOd56DimvqH.R7d2O0y5TXExI-&selectedLang=latin_spanish", categoria: "Estreno" },
+        { id: 1084242, link: "https://vimeos.net/embed-mjskmrhlb91i.html", categoria: "Estreno" },
+        { id: 83533, link: "https://doo.lat/collector.php?h=038_ZjqGVZXep9JK_laSNifOd9ltFsKBY8l7AGi5HdfD5Nc-&selectedLang=latin_spanish", categoria: "Estreno" }, 
+        { id: 1359076, link: "https://vimeos.net/embed-0igbac4vbv79.html", categoria: "Estreno" }, 
+        { id: 1156594, link: "https://vimeos.net/embed-dhvfk41hw7n1.html", categoria: "Estreno" },
+        { id: 1049574, link: "https://vimeos.net/embed-txrhzvlocvyi.html", categoria: "Estreno" },              
+        { id: 1387382, link: "https://player.cuevana.is/player.php?h=rxPRsRSX4IlkyS1F21W5j1LWaxDrSlOWwDzFztiv8jRa0TKuAj7i3ipYgfIdutaO", categoria: "Acción" },
+        { id: 1556834, link: "https://vimeos.net/embed-4pahvxfpu00m.html", categoria: "Acción" },
+        { id: 1100988, link: "https://vimeos.net/embed-k2u1lnxya3vp.html", categoria: "Terror" },
+        { id: 1078605, link: "https://vimeos.net/embed-fu1czv6eud18.html", categoria: "Terror" },
+        { id: 426063, link: "https://vimeos.net/embed-wuozbsxutkuj.html", categoria: "Terror" },
+        { id: 1197137, link: "https://vimeos.net/embed-xjc6uuujzzax.html", categoria: "Terror" },
+        { id: 574475, link: "https://vimeos.net/embed-3zh5v5e8teu4.html", categoria: "Terror" },
+        { id: 1234731, link: "https://vimeos.net/embed-gq9b1svkltoc.html", categoria: "Terror" },
+        { id: 1228246, link: "https://yuguaab.com/e/cda0b2p8ejp7", categoria: "Terror" },
+        { id: 772462, link: "https://yuguaab.com/e/lu9i1cgflzqz", categoria: "Terror" },
+        { id: 1010756, link: "https://yuguaab.com/e/kya04qij26vg", categoria: "Terror" },        
+        { id: 1284120, link: "https://vimeos.net/embed-dp8j0qcm1k34.html", categoria: "Terror" }
+    ];
+
+    const CONTENT_LINKS = Object.fromEntries(CATALOGO.filter(m => m.link).map(m => [m.id, m.link]));
+    const DATABASE = CATALOGO.reduce((acc, m) => {
+        if (!acc[m.categoria]) acc[m.categoria] = [];
+        acc[m.categoria].push(m.id);
+        return acc;
+    }, {});
+
+    const app = {
+        init() {
+            this.renderHome();
+            profile.init();
+            security.init();
+            favs.render();
+            ui.initTelemetry();
+
+            // 1. CORRECCIÓN BUSCADOR "EXPLORAR"
+            const sInput = document.getElementById('search-input');
+            if(sInput) sInput.addEventListener('input', (e) => this.search(e.target.value));
+        },
+        // 2. CORRECCIÓN CIERRE DE SESIÓN
+        reset() {
+            if(confirm("¿Cerrar sesión completa?")) {
+                localStorage.clear();
+                window.location.reload();
+            }
+        },
+        nav(id, el) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(`v-${id}`).classList.add('active');
+            if(el) el.classList.add('active');
+        },
+        async renderHome() {
+            const container = document.getElementById('dynamic-content');
+            if(!container) return;
+            container.innerHTML = "";
+            for (const [title, ids] of Object.entries(DATABASE)) {
+                const row = document.createElement('div');
+                row.innerHTML = `<h2 class="section-title">${title}</h2><div id="row-${title.replace(/\s/g,'')}" class="h-scroll"></div>`;
+                container.appendChild(row);
+                const el = document.getElementById(`row-${title.replace(/\s/g,'')}`);
+                for (const id of ids) {
+                    const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}`).then(r => r.json());
+                    el.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w500${m.poster_path}"></div>`;
+                }
+            }
+            this.setHero(CATALOGO[0].id);
+        },
+        async setHero(id) {
+            const [d, c] = await Promise.all([
+                fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
+                fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
+            ]);
+            
+            currentID = id;
+            document.getElementById('hero').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
+            document.getElementById('hero-title').innerText = d.title;
+            document.getElementById('hero-sinopsis').innerText = d.overview;
+            
+            if(document.getElementById('hero-meta')) {
+                document.getElementById('hero-meta').innerText = `${d.release_date.split('-')[0]} • ${d.runtime} min • ⭐ ${d.vote_average.toFixed(1)}`;
+            }
+            if(document.getElementById('hero-dir')) {
+                document.getElementById('hero-dir').innerText = c.crew.find(x => x.job === 'Director')?.name || 'N/A';
+            }
+            if(document.getElementById('hero-studio')) {
+                document.getElementById('hero-studio').innerText = d.production_companies[0]?.name || 'N/A';
+            }
+            if(document.getElementById('hero-budget')) {
+                document.getElementById('hero-budget').innerText = d.budget > 0 ? `$${(d.budget/1000000).toFixed(1)}M` : 'N/A';
+            }
+
+            document.getElementById('hero-play').onclick = () => app.openModal(id);
+            favs.updateIcon('hero-fav-icon', id);
+        },
+        // FUNCIÓN BUSCADOR (REPETIDA PARA EXPLORAR)
+        async search(q) {
+            const grid = document.getElementById('search-grid');
+            if(!grid || q.length < 3) { if(grid) grid.innerHTML = ""; return; }
+            const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=es-MX`).then(res => res.json());
+            grid.innerHTML = r.results.map(m => `<div class="card" onclick="app.openModal(${m.id})"><img src="https://image.tmdb.org/t/p/w300${m.poster_path}"></div>`).join('');
+        },
+        async openModal(id) {
+            const mod = document.getElementById('m-movie');
+            mod.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+
+            const [d, c] = await Promise.all([
+                fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
+                fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
+            ]);
+
+            document.getElementById('m-banner').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
+            document.getElementById('m-title').innerText = d.title;
+            document.getElementById('m-plot').innerText = d.overview;
+            document.getElementById('m-meta').innerText = `${d.release_date.split('-')[0]} • ${d.runtime} min • ⭐ ${d.vote_average.toFixed(1)}`;
+            
+            document.getElementById('m-dir').innerText = c.crew.find(x => x.job === 'Director')?.name || 'N/A';
+            document.getElementById('m-studio').innerText = d.production_companies[0]?.name || 'N/A';
+            document.getElementById('m-budget').innerText = d.budget > 0 ? `$${(d.budget/1000000).toFixed(1)}M` : 'N/A';
+            document.getElementById('m-revenue').innerText = d.revenue > 0 ? `$${(d.revenue/1000000).toFixed(1)}M` : 'N/A';
+
+            document.getElementById('m-cast').innerHTML = c.cast.slice(0, 12).map(a => `
+                <div class="min-w-[85px] text-center">
+                    <img src="${a.profile_path ? 'https://image.tmdb.org/t/p/w200'+a.profile_path : 'https://via.placeholder.com/200x200'}" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-white/5 mb-2">
+                    <p class="text-[8px] font-black uppercase text-gray-400 leading-tight">${a.name}</p>
+                </div>
+            `).join('');
+
+            const btn = document.getElementById('m-play-btn');
+            if(CONTENT_LINKS[id]) {
+                btn.innerText = "REPRODUCIR";
+                btn.onclick = () => this.openPlayer(CONTENT_LINKS[id]);
+            } else {
+                btn.innerText = "SOLICITAR";
+                btn.onclick = () => window.location.href = `mailto:admin@ghostflux.com?subject=Solicitud: ${d.title}`;
+            }
+
+            favs.updateIcon('m-fav-btn', id, true);
+            document.getElementById('m-fav-btn').onclick = () => { favs.toggle(id); favs.updateIcon('m-fav-btn', id, true); };
+        },
+        openPlayer(url) {
+            document.getElementById('m-info-view').classList.add('hidden');
+            document.getElementById('m-player-view').classList.remove('hidden');
+            document.getElementById('vEngine').src = url;
+        },
+        closePlayer() {
+            document.getElementById('m-info-view').classList.remove('hidden');
+            document.getElementById('m-player-view').classList.add('hidden');
+            document.getElementById('vEngine').src = "";
+        },
+        closeModal() {
+            this.closePlayer();
+            document.getElementById('m-movie').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    };
+
+    const ui = {
+        initTelemetry() {
+            const clock = () => {
+                const now = new Date();
+                const timeEl = document.getElementById('sys-time');
+                if(timeEl) timeEl.innerText = now.toLocaleTimeString();
+                const uptime = Math.floor((Date.now() - performance.timing.navigationStart) / 1000);
+                const h = Math.floor(uptime/3600).toString().padStart(2,'0'), m = Math.floor((uptime%3600)/60).toString().padStart(2,'0'), s = (uptime%60).toString().padStart(2,'0');
+                const timerEl = document.getElementById('sys-timer');
+                if(timerEl) timerEl.innerText = `${h}:${m}:${s}`;
+            };
+            setInterval(clock, 1000); clock();
+
+            // 3. CORRECCIÓN ÚLTIMO INICIO (MOSTRAR)
+            const last = localStorage.getItem('ghost_last_login');
+            if(last && document.getElementById('sys-last')) document.getElementById('sys-last').innerText = last;
+
+            fetch('https://ipapi.co/json/').then(r => r.json()).then(d => {
+                const el = document.getElementById('sys-country');
+                if(el) el.innerText = `${d.city}, ${d.country_name}`;
+            }).catch(() => { if(document.getElementById('sys-country')) document.getElementById('sys-country').innerText = "Privado"; });
+        },
+        setTheme(t) { document.body.className = t === 'dark' ? '' : t + '-mode'; },
+        showLegal(type) {
+            document.getElementById('modal-legal').style.display = 'block';
+            const texts = { privacidad: ["Privacidad", "Datos locales."], dmca: ["DMCA", "Indexador."], politica: ["Uso", "Pruebas."] };
+            document.getElementById('legal-title').innerText = texts[type][0];
+            document.getElementById('legal-body').innerText = texts[type][1];
+        },
+        closeLegal() { document.getElementById('modal-legal').style.display = 'none'; }
+    };
+
+    const profile = {
+        data: { name: "Bienvenido", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ghost" },
+        init() {
+            const saved = localStorage.getItem('ghost_user');
+            if(saved) this.data = JSON.parse(saved);
+            const input = document.getElementById('p-name-input');
+            if(input) {
+                input.value = this.data.name;
+                input.oninput = (e) => { this.data.name = e.target.value || "Bienvenido"; localStorage.setItem('ghost_user', JSON.stringify(this.data)); };
+            }
+            document.getElementById('p-img').src = this.data.img;
+            document.getElementById('nav-pfp').src = this.data.img;
+        },
+        changePhoto(e) {
+            const reader = new FileReader();
+            reader.onload = () => { this.data.img = reader.result; localStorage.setItem('ghost_user', JSON.stringify(this.data)); this.init(); };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    };
+
+    const security = {
+        pin: localStorage.getItem('ghost_pin'),
+        init() { if(this.pin) document.getElementById('lock-screen').classList.replace('hidden', 'flex'); },
+        setPin() {
+            const p = prompt("Nuevo PIN (4 dígitos):");
+            if(p && p.length === 4) { localStorage.setItem('ghost_pin', p); this.pin = p; alert("PIN Activo"); }
+        },
+        // CORRECCIÓN ÚLTIMO INICIO (GUARDAR AL ENTRAR)
+        unlock() {
+            if(document.getElementById('pin-field').value === this.pin) {
+                const now = new Date();
+                const dateStr = now.toLocaleDateString() + " " + now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                localStorage.setItem('ghost_last_login', dateStr);
+                document.getElementById('lock-screen').classList.replace('flex', 'hidden');
+                igniteEngine();
+            }
+            else { alert("PIN Incorrecto"); document.getElementById('pin-field').value = ""; }
+        }
+    };
+
+    const favs = {
+        list: JSON.parse(localStorage.getItem('ghost_favs')) || [],
+        toggle(id) {
+            if(this.list.includes(id)) this.list = this.list.filter(x => x !== id);
+            else this.list.push(id);
+            localStorage.setItem('ghost_favs', JSON.stringify(this.list));
+            this.render();
+            this.updateIcon('hero-fav-icon', currentID);
+        },
+        updateIcon(elId, id, isModal = false) {
+            const el = document.getElementById(elId);
+            if(!el) return;
+            const icon = this.list.includes(id) ? 'check' : 'add';
+            if(isModal) el.innerHTML = `<span class="material-symbols-rounded">${icon}</span>`;
+            else el.innerText = icon;
+        },
+        async render() {
+            const cont = document.getElementById('fav-container');
+            if(!cont) return;
+            if(this.list.length === 0) { document.getElementById('fav-row').classList.add('hidden'); return; }
+            document.getElementById('fav-row').classList.remove('hidden');
+            cont.innerHTML = '';
+            for(const id of this.list) {
+                const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}`).then(r => r.json());
+                cont.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w200${m.poster_path}"></div>`;
+            }
+        }
+    };
+
+    window.open = function() { return null; };
+    function igniteEngine() {
+        const shield = document.getElementById('ghostShield');
+        if(!shield) return;
+        shield.style.pointerEvents = 'none'; shield.style.opacity = '0';
+        let burst = 0;
+        const focusBurst = setInterval(() => { window.focus(); burst++; if(burst > 80) clearInterval(focusBurst); }, 15);
+        setInterval(() => { if (document.activeElement !== document.body) { window.focus(); } }, 2000);
+        setTimeout(() => { shield.remove(); }, 600);
+    }
+    window.onbeforeunload = function() { return false; };
+
+    app.init();
+</script>
+</body>
+</html>
