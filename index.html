@@ -3,752 +3,527 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TubeHub X | Ultra Secure</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
-
+    <title>Mi Galería Pro</title>
     <style>
-        /* --- 1. CORE VARIABLES --- */
         :root {
-            --bg-master: #0f0f0f;
-            --bg-secondary: #1e1e1e;
-            --bg-hover: #3f3f3f;
-            --accent: #ff0033;
-            --text-main: #ffffff;
-            --text-gray: #aaaaaa;
-            --border: #2a2a2a;
-            --header-h: 60px;
-            --nav-h: 60px;
-            --sidebar-w: 240px;
+            --bg-puro: #0f0f11;
+            --bg-tarjeta: #18181c;
+            --bg-sheet: #1f1f23;
+            --texto: #ffffff;
+            --texto-muted: #a1a1aa;
+            --pinterest-red: #e60023;
+            --pinterest-hover: #cc001f;
+            --corazon: #ff0040;
+            --estrella: #eab308;
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.05);
         }
 
-        [data-theme="light"] {
-            --bg-master: #f9f9f9;
-            --bg-secondary: #ffffff;
-            --bg-hover: #eeeeee;
-            --text-main: #0f0f0f;
-            --text-gray: #606060;
-            --border: #dddddd;
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-master); color: var(--text-main); font-family: 'Roboto', sans-serif; overflow-x: hidden; padding-bottom: 70px; }
-
-        /* --- 2. COMPONENTS & SKELETON LOADING --- */
-        .btn-icon { background: none; border: none; color: var(--text-main); cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn-icon:hover { background: var(--bg-hover); }
-
-        /* Skeleton Effect (Carga estilo YouTube) */
-        .skeleton { 
-            background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-hover) 50%, var(--bg-secondary) 75%); 
-            background-size: 200% 100%; 
-            animation: shimmer 1.5s infinite; 
-            border-radius: 8px; 
+        body {
+            background-color: var(--bg-puro); color: var(--texto);
+            padding: 15px 10px 100px 10px; min-height: 100vh; overflow-x: hidden;
         }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* Security Badges */
-        .security-badge {
-            display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700;
-            padding: 4px 8px; border-radius: 4px; background: #0f3d0f; color: #4caf50; border: 1px solid #1b5e20; margin-bottom: 10px;
-        }
-        .security-badge.off { background: #3d0f0f; color: #ff5252; border-color: #b71c1c; }
+        @keyframes pulse { 0% { background-color: #1a1a1f; } 50% { background-color: #26262b; } 100% { background-color: #1a1a1f; } }
+        .skeleton { animation: pulse 1.5s infinite ease-in-out; }
 
-        /* --- 3. HEADER --- */
-        .header {
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--header-h);
-            background: var(--bg-master); z-index: 1000; border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
-        }
-        .logo { font-size: 20px; font-weight: 800; letter-spacing: -1px; display: flex; align-items: center; gap: 5px; cursor: pointer; }
-        .logo span { color: var(--accent); font-size: 24px; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 10px 25px 10px; max-width: 1400px; margin: 0 auto; }
+        .logo-container { display: flex; align-items: center; gap: 8px; }
+        .logo-icon { width: 32px; height: 32px; background: var(--pinterest-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.2rem; }
+        .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; }
+        .header-icons { display: flex; gap: 15px; }
+        .header-icons svg { width: 26px; height: 26px; fill: none; stroke: var(--texto); stroke-width: 1.8; cursor: pointer; }
 
-        .search-box {
-            display: flex; width: 100%; max-width: 500px; margin: 0 20px;
-            background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 40px; overflow: hidden;
-        }
-        .search-box input {
-            flex: 1; background: transparent; border: none; padding: 0 15px; color: var(--text-main); outline: none; height: 40px; font-size: 16px;
-        }
-        .search-box button { width: 60px; background: var(--bg-hover); border: none; border-left: 1px solid var(--border); color: var(--text-main); cursor: pointer; }
+        .galeria-masonry { column-count: 2; column-gap: 12px; max-width: 1400px; margin: 0 auto; }
+        @media (min-width: 640px) { .galeria-masonry { column-count: 3; } }
+        @media (min-width: 1024px) { .galeria-masonry { column-count: 4; column-gap: 16px; } }
+        @media (min-width: 1400px) { .galeria-masonry { column-count: 5; } }
 
-        .user-avatar { width: 32px; height: 32px; border-radius: 50%; background-size: cover; background-position: center; cursor: pointer; border: 1px solid var(--border); background-color: #333; }
+        .pin-card { break-inside: avoid; margin-bottom: 12px; border-radius: 16px; overflow: hidden; position: relative; background: var(--bg-tarjeta); cursor: pointer; transition: transform 0.2s ease; user-select: none; -webkit-user-select: none; }
+        .pin-card:active { transform: scale(0.98); }
+        .pin-card img { width: 100%; display: block; border-radius: 16px; transition: opacity 0.3s ease; opacity: 0; pointer-events: none; }
+        .pin-card img.loaded { opacity: 1; }
 
-        /* --- 4. SIDEBAR & BACKDROP --- */
-        .backdrop {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 899; opacity: 0; visibility: hidden; transition: 0.3s;
+        .pin-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0; top: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%);
+            padding: 14px; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; transition: opacity 0.25s ease;
         }
-        .backdrop.show { opacity: 1; visibility: visible; }
-
-        .sidebar {
-            width: var(--sidebar-w); background: var(--bg-master);
-            position: fixed; top: var(--header-h); bottom: 0; left: -100%;
-            overflow-y: auto; padding: 12px; border-right: 1px solid var(--border);
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 900;
-        }
-        .sidebar.open { left: 0; }
+        @media (max-width: 768px) { .pin-overlay { opacity: 1; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 40%); } }
+        .pin-card:hover .pin-overlay { opacity: 1; }
+        .pin-info-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .pin-title { font-size: 0.85rem; font-weight: 600; color: #fff; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pin-actions { display: flex; gap: 6px; }
         
-        .side-item {
-            display: flex; align-items: center; gap: 20px; padding: 10px 12px;
-            border-radius: 10px; cursor: pointer; color: var(--text-main); font-size: 14px; font-weight: 500; margin-bottom: 5px;
-            position: relative; overflow: hidden;
+        .btn-glass {
+            background: var(--glass); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border); width: 34px; height: 34px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s, transform 0.1s;
         }
-        .side-item:hover, .side-item.active { background: var(--bg-hover); }
-        .side-item.active .material-symbols-rounded { color: var(--accent); font-variation-settings: 'FILL' 1; }
-        /* Efecto Click */
-        .side-item::after { content:''; position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.1); opacity:0; transition:0.2s; }
-        .side-item:active::after { opacity:1; }
+        .btn-glass:active { transform: scale(0.9); }
+        .btn-glass svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.8; }
+        .btn-glass.active svg { fill: var(--corazon); stroke: var(--corazon); }
+        .btn-glass.fav-active svg { fill: var(--estrella); stroke: var(--estrella); }
 
-        /* --- 5. MAIN CONTAINER --- */
-        .main-container { margin-top: var(--header-h); padding: 20px; min-height: 100vh; transition: margin 0.3s; }
+        .search-container { display: none; padding: 0 10px 20px 10px; max-width: 1400px; margin: 0 auto; }
+        .search-container.active { display: block; }
+        .search-input { width: 100%; background: var(--bg-tarjeta); border: 1px solid var(--glass-border); padding: 14px 22px; border-radius: 30px; color: #fff; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+        .search-input:focus { border-color: rgba(255,255,255,0.2); }
+
+        .bottom-nav {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            background: rgba(24, 24, 28, 0.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            padding: 10px 24px; border-radius: 40px; display: flex; gap: 30px; z-index: 1000;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7); border: 1px solid var(--glass-border);
+        }
+        .nav-item { background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 8px; border-radius: 50%; }
+        .nav-item svg { width: 26px; height: 26px; fill: none; stroke: var(--texto-muted); stroke-width: 1.8; transition: stroke 0.2s; }
+        .nav-item.active svg { stroke: var(--texto); stroke-width: 2.2; }
+
+        /* VISTA DETALLE */
+        .vista-detalle {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: var(--bg-puro); z-index: 2000;
+            display: flex; flex-direction: column;
+            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.1, 0.76, 0.55, 0.94);
+            overflow-y: auto; overflow-x: hidden;
+        }
+        .vista-detalle.activa { transform: translateY(0); }
+
+        .detalle-nav-top {
+            position: sticky; top: 0; background: rgba(15, 15, 17, 0.85); backdrop-filter: blur(10px);
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; z-index: 2020;
+        }
+
+        .btn-save-pinterest {
+            background: var(--pinterest-red); color: #fff; border: none; padding: 10px 20px; border-radius: 24px; font-weight: 700; font-size: 0.95rem; cursor: pointer;
+        }
+        .btn-save-pinterest:active { background: var(--pinterest-hover); }
+
+        .detalle-img-container {
+            width: 100%; display: flex; justify-content: center; align-items: center;
+            background: #050507; padding: 10px 0; position: relative;
+        }
+        .detalle-img-container img {
+            max-width: 100%; max-height: 80vh; object-fit: contain; display: block;
+        }
+
+        .detalle-info-box { max-width: 750px; margin: 0 auto; width: 100%; padding: 20px; }
+        .detalle-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .autor-info { display: flex; align-items: center; gap: 10px; }
+        .autor-avatar { width: 40px; height: 40px; background: #3a3a42; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+        .autor-name { font-weight: 600; font-size: 1rem; }
         
-        section { display: none; animation: fadeIn 0.3s; }
-        section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .detalle-iconos-row { display: flex; gap: 12px; }
 
-        /* --- 6. VIDEO GRIDS & CARDS --- */
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .video-card { cursor: pointer; transition: transform 0.2s; }
-        .video-card:active { transform: scale(0.98); }
+        .mas-explorar { padding: 40px 10px 120px 10px; max-width: 1400px; margin: 0 auto; border-top: 1px solid var(--glass-border); }
+        .mas-explorar h3 { font-size: 1.1rem; margin-bottom: 20px; text-align: center; font-weight: 700; }
+
+        /* BOTTOM SHEET OPCIONES */
+        .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(4px); }
+        .sheet-overlay.activo { opacity: 1; pointer-events: auto; }
+
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--bg-sheet); border-top-left-radius: 24px; border-top-right-radius: 24px;
+            padding: 20px 20px 40px 20px; z-index: 3010; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94);
+        }
+        .bottom-sheet.activo { transform: translateY(0); }
+        .sheet-linea { width: 36px; height: 5px; background: #444; border-radius: 5px; margin: 0 auto 20px auto; }
+        .sheet-titulo { font-size: 1.1rem; font-weight: 700; text-align: center; margin-bottom: 20px; }
         
-        .thumbnail-box {
-            position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 10px;
+        .tablero-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tarjeta); border-radius: 12px; cursor: pointer; }
+        .tablero-item:active { background: #2a2a32; }
+
+        .toast {
+            position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-100px);
+            background: #fff; color: #000; padding: 12px 24px; border-radius: 30px;
+            font-weight: 700; font-size: 0.9rem; z-index: 4000; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
-        .thumbnail-box img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; }
-        .duration { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,0.8); color: white; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
-        
-        .meta-flex { display: flex; gap: 12px; }
-        .chan-img { width: 36px; height: 36px; border-radius: 50%; background: #333; flex-shrink: 0; background-size: cover; }
-        .info h3 { font-size: 15px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; color: var(--text-main); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .info p { font-size: 12px; color: var(--text-gray); }
-
-        /* --- 7. PLAYER & WATCH PAGE --- */
-        .watch-container { max-width: 1200px; margin: 0 auto; }
-        .back-nav { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; color: var(--text-main); margin-bottom: 15px; font-weight: 500; font-size: 14px; padding: 5px 10px; border-radius: 20px; }
-        .back-nav:hover { background: var(--bg-hover); }
-
-        .video-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: black; border-radius: 12px; overflow: hidden; margin-bottom: 15px; }
-        #player-placeholder { width: 100%; height: 100%; }
-
-        .w-title { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
-        .w-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
-        
-        .w-channel-block { display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 5px; border-radius: 10px; transition: 0.2s; }
-        .w-channel-block:hover { background: var(--bg-hover); }
-
-        .action-bar { display: flex; gap: 10px; overflow-x: auto; }
-        .act-btn {
-            background: var(--bg-hover); color: var(--text-main); border: none; padding: 8px 16px; border-radius: 20px; 
-            font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap;
-        }
-        .act-btn:hover { background: #505050; }
-        .act-btn.active { background: var(--text-main); color: var(--bg-master); }
-        .act-btn.active span { font-variation-settings: 'FILL' 1; }
-
-        .desc-box { background: var(--bg-secondary); padding: 15px; border-radius: 12px; font-size: 14px; cursor: pointer; }
-        .desc-box:hover { background: var(--bg-hover); }
-
-        /* --- 8. PROFILE & STATS --- */
-        .profile-stat-box { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
-        .stat-card { background: var(--bg-secondary); padding: 15px; border-radius: 10px; min-width: 100px; text-align: center; border: 1px solid var(--border); }
-        .stat-num { font-size: 20px; font-weight: 800; color: var(--text-main); }
-        .stat-lbl { font-size: 12px; color: var(--text-gray); }
-
-        /* --- 9. MOBILE UI --- */
-        .mobile-search {
-            position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: var(--bg-master); z-index: 2000;
-            display: flex; align-items: center; padding: 0 10px; transform: translateY(-100%); transition: 0.3s; border-bottom: 1px solid var(--border);
-        }
-        .mobile-search.show { transform: translateY(0); }
-
-        .nav-mobile {
-            display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-h);
-            background: var(--bg-master); border-top: 1px solid var(--border); z-index: 2000;
-            justify-content: space-around; align-items: center;
-        }
-        .nav-btn { background: none; border: none; color: var(--text-gray); display: flex; flex-direction: column; align-items: center; font-size: 10px; flex: 1; }
-        .nav-btn span { font-size: 24px; margin-bottom: 2px; }
-        .nav-btn.active { color: var(--text-main); }
-        .nav-btn.active span { font-variation-settings: 'FILL' 1; }
-
-        /* TOAST */
-        #toast {
-            visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 16px; 
-            position: fixed; z-index: 3000; left: 50%; bottom: 80px; transform: translateX(-50%); font-size: 14px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
-        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 80px; opacity: 1;} }
-        @keyframes fadeout { from {bottom: 80px; opacity: 1;} to {bottom: 0; opacity: 0;} }
-
-        /* MEDIA QUERIES */
-        @media (max-width: 900px) {
-            .header .search-box { display: none; }
-            .nav-mobile { display: flex; }
-            .main-container { padding: 15px; padding-bottom: 80px; }
-            .sidebar { width: 280px; }
-            .video-wrapper { border-radius: 0; margin-left: -15px; width: 100vw; }
-        }
-        @media (min-width: 1000px) {
-            .sidebar { left: 0; }
-            .main-container { margin-left: var(--sidebar-w); }
-        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
-    <div id="toast">Notificación</div>
-    
-    <div class="backdrop" id="backdrop" onclick="app.toggleSidebar()"></div>
-
-    <div id="mobile-search-bar" class="mobile-search">
-        <button class="btn-icon" onclick="app.toggleSearch()"><span class="material-symbols-rounded">arrow_back</span></button>
-        <input type="text" id="mob-input" class="search-box input" placeholder="Buscar título o canal..." style="flex:1; background:transparent; border:none; color:white; font-size:16px; outline:none; margin:0 10px;">
-        <button class="btn-icon" onclick="app.search('mob-input')"><span class="material-symbols-rounded">search</span></button>
-    </div>
-
-    <header class="header">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <button class="btn-icon" onclick="app.toggleSidebar()"><span class="material-symbols-rounded">menu</span></button>
-            <div class="logo" onclick="app.nav('home')">
-                <span class="material-symbols-rounded">play_circle</span> TubeHub X
-            </div>
+    <header>
+        <div class="logo-container">
+            <div class="logo-icon">M</div>
+            <div class="logo">Mi Galería</div>
         </div>
-        
-        <div class="search-box">
-            <input type="text" id="pc-input" placeholder="Buscar">
-            <button onclick="app.search('pc-input')"><span class="material-symbols-rounded">search</span></button>
-        </div>
-
-        <div style="display:flex; gap:10px; align-items:center;">
-            <button class="btn-icon"><span class="material-symbols-rounded">notifications</span></button>
-            <div class="user-avatar" id="head-avatar" onclick="app.nav('profile')"></div>
+        <div class="header-icons">
+            <svg id="headerMsg" viewBox="0 0 24 24"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12c0 1.886.522 3.65 1.433 5.158L2.05 21.95l4.908-1.28A9.957 9.957 0 0012 22z"/></svg>
         </div>
     </header>
 
-    <aside class="sidebar" id="sidebar">
-        <div class="side-item active" onclick="app.nav('home')"><span class="material-symbols-rounded">home</span> Inicio</div>
-        <div class="side-item" onclick="app.nav('favorites')"><span class="material-symbols-rounded">favorite</span> Favoritos</div>
-        <div class="side-item" onclick="app.nav('profile')"><span class="material-symbols-rounded">person</span> Perfil</div>
-        <div class="side-item" onclick="app.nav('settings')"><span class="material-symbols-rounded">settings</span> Ajustes</div>
-    </aside>
+    <div class="search-container" id="searchContainer">
+        <input type="text" class="search-input" id="inputBuscar" placeholder="Buscar por título...">
+    </div>
 
-    <main class="main-container">
+    <main class="galeria-masonry" id="galeriaGrid"></main>
 
-        <section id="view-home" class="active">
-            <h2 style="margin-bottom:20px;">Recomendados</h2>
-            <div class="video-grid" id="home-grid"></div>
-        </section>
-
-        <section id="view-search">
-            <div class="back-nav" onclick="app.nav('home')"><span class="material-symbols-rounded">arrow_back</span> Volver</div>
-            <h2 id="search-title" style="margin-bottom:20px;">Resultados</h2>
-            <div class="video-grid" id="search-grid"></div>
-        </section>
-
-        <section id="view-favorites">
-            <h2 style="margin-bottom:20px;">Mis Favoritos</h2>
-            <div id="fav-msg" style="text-align:center; padding:50px; color:#666;">No tienes favoritos guardados.</div>
-            <div class="video-grid" id="fav-grid"></div>
-        </section>
-
-        <section id="view-watch">
-            <div class="watch-container">
-                <div class="back-nav" onclick="app.goBack()">
-                    <span class="material-symbols-rounded">arrow_back</span> Regresar
-                </div>
-
-                <div class="video-wrapper">
-                    <div id="player-placeholder"></div>
-                </div>
-
-                <h1 class="w-title" id="w-title">---</h1>
-
-                <div class="w-actions">
-                    <div class="w-channel-block" onclick="app.openChannel(app.currentVideo.channel)">
-                        <div class="chan-img" id="w-chan-img"></div>
-                        <div>
-                            <h4 id="w-chan-name">---</h4>
-                            <span style="font-size:12px; color:var(--text-gray);">Premium</span>
-                        </div>
-                    </div>
-
-                    <div class="action-bar">
-                        <button class="act-btn" id="btn-fav" onclick="app.toggleFav()">
-                            <span class="material-symbols-rounded">favorite</span> <span id="lbl-fav">Favorito</span>
-                        </button>
-                        <button class="act-btn" onclick="app.share()">
-                            <span class="material-symbols-rounded">share</span> Compartir
-                        </button>
-                    </div>
-                </div>
-
-                <div class="desc-box">
-                    <p style="font-weight:700; margin-bottom:5px;">PlayMusic • <span id="w-time">--</span></p>
-                    <p id="w-desc">...</p>
-                </div>
-
-                <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
-                    <h3 style="margin-bottom:15px;">Para ti</h3>
-                    <div class="video-grid" id="rec-grid"></div>
-                </div>
-            </div>
-        </section>
-
-        <section id="view-settings">
-            <h2 style="margin-bottom:20px;">Ajustes</h2>
-            
-            <div style="background:var(--bg-secondary); border-radius:10px; overflow:hidden;">
-                <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <h4>Reproducción Automática</h4>
-                        <p style="font-size:12px; color:var(--text-gray);">Reproducir el siguiente video al terminar</p>
-                    </div>
-                    <input type="checkbox" id="set-autoplay" onchange="app.saveSettings()">
-                </div>
-
-                <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <h4>Tema Claro</h4>
-                        <p style="font-size:12px; color:var(--text-gray);">Cambiar apariencia de la aplicación</p>
-                    </div>
-                    <input type="checkbox" id="set-theme" onchange="app.saveSettings()">
-                </div>
-            </div>
-            
-            <div style="margin-top:20px; padding:15px; color:var(--text-gray); font-size:12px;">
-                <p>Versión 4.0 Secure Core. TubeHub X no aloja contenido.</p>
-            </div>
-        </section>
-
-        <section id="view-profile">
-            <div style="background: linear-gradient(45deg, #ff0033, #000); height: 100px; border-radius: 0 0 50% 50%; margin-bottom: -50px;"></div>
-            
-            <div style="text-align:center; padding:0 20px;">
-                <div style="position: relative; display: inline-block;">
-                    <img id="p-img" src="" style="width:100px; height:100px; border-radius:50%; border: 4px solid var(--bg-master); background: #000;">
-                    <button class="btn-icon" style="position: absolute; bottom: 0; right: 0; background: var(--accent); color: white;" onclick="document.getElementById('file-up').click()">
-                        <span class="material-symbols-rounded" style="font-size: 16px;">edit</span>
-                    </button>
-                    <input type="file" id="file-up" hidden onchange="app.uploadAvatar(this)">
-                </div>
-        
-                <h2 id="p-name" style="margin-top: 10px;">Usuario</h2>
-                <p id="p-desc" style="color: var(--text-gray); font-size: 14px;">...</p>
-        
-                <div class="profile-stat-box">
-                    <div class="stat-card">
-                        <div class="stat-num" id="stat-views">0</div>
-                        <div class="stat-lbl">Videos Vistos</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-num" id="stat-favs">0</div>
-                        <div class="stat-lbl">Favoritos</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="max-width:500px; margin:0 auto; padding:20px;">
-                <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px;">Editar Perfil</h3>
-                
-                <div style="margin-bottom: 15px;">
-                    <label style="font-size: 12px; color: var(--text-gray);">Nombre Público</label>
-                    <input type="text" id="in-name" oninput="app.saveProfile()" 
-                        style="width:100%; padding:12px; background:var(--bg-secondary); border:1px solid var(--border); color:white; border-radius: 8px; outline: none;">
-                </div>
-                
-                <div>
-                    <label style="font-size: 12px; color: var(--text-gray);">Bio</label>
-                    <textarea id="in-desc" oninput="app.saveProfile()" 
-                        style="width:100%; height:100px; padding:12px; background:var(--bg-secondary); border:1px solid var(--border); color:white; border-radius: 8px; outline: none; resize: none;"></textarea>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <nav class="nav-mobile">
-        <button class="nav-btn active" onclick="app.nav('home')"><span class="material-symbols-rounded">home</span>Inicio</button>
-        <button class="nav-btn" onclick="app.toggleSearch()"><span class="material-symbols-rounded">search</span>Buscar</button>
-        <button class="nav-btn" onclick="app.nav('favorites')"><span class="material-symbols-rounded">favorite</span>Favs</button>
-        <button class="nav-btn" onclick="app.nav('profile')"><span class="material-symbols-rounded">person</span>Yo</button>
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="nav-item active" id="navHome">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path d="M9 22V12h6v10"/></svg>
+        </button>
+        <button class="nav-item" id="navSearch">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        </button>
+        <button class="nav-item" id="navFavs">
+            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+        </button>
     </nav>
 
+    <div class="vista-detalle" id="vistaDetalle">
+        <div class="detalle-nav-top">
+            <button class="btn-glass" id="btnCerrarDetalle" style="border-radius: 50%;">
+                <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <button class="btn-save-pinterest" id="btnCompartirPin">Compartir</button>
+        </div>
+        
+        <div class="detalle-img-container" id="detalleImgContainer">
+            <img id="imgDetalleSrc" src="" alt="">
+        </div>
+
+        <div class="detalle-info-box">
+            <div class="detalle-meta-row">
+                <div class="autor-info">
+                    <div class="autor-avatar" id="autorAvatar">U</div>
+                    <div>
+                        <div class="autor-name" id="pinTituloReal">Título Idea</div>
+                        <div style="font-size:0.8rem; color:var(--texto-muted);">Mi Colección</div>
+                    </div>
+                </div>
+                <div class="detalle-iconos-row">
+                    <button class="btn-glass" id="btnLikeDetalle">
+                        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                    </button>
+                    <button class="btn-glass" id="btnMenuOpciones">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mas-explorar">
+            <h3>Más imágenes de la galería</h3>
+            <div class="galeria-masonry" id="galeriaExplorar"></div>
+        </div>
+    </div>
+
+    <div class="sheet-overlay" id="sheetOverlay"></div>
+    
+    <div class="bottom-sheet" id="bottomSheetOpciones">
+        <div class="sheet-linea"></div>
+        <div class="sheet-titulo">Opciones de la Imagen</div>
+        <div class="tablero-item" id="btnCopiarEnlace" style="margin-bottom: 8px;">
+            <span>Copiar enlace de origen</span>
+            <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:none; stroke:#fff; stroke-width:2;"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg>
+        </div>
+        <div class="tablero-item" id="btnDescargarDispositivo" style="color: var(--pinterest-red);">
+            <span>Abrir Imagen Directa</span>
+            <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:none; stroke:var(--pinterest-red); stroke-width:2;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        </div>
+    </div>
+
+    <div class="toast" id="appToast">Mensaje</div>
+
     <script>
-        /* =========================================================
-           BASE DE DATOS V2: Enfoque Directo en Embeds
-           =========================================================
-        */
-        const VIDEO_DB = [
-        { id: 'https://cnd-player-teleplus.blogspot.com/?player=plyr&provider=yt&link=https%3A%2F%2Fyoutu.be%2FRG8YSMUZ2Nk%3Fsi%3DzO5_hNElRwIxQVxf', type: 'embed', title: 'La Nave del Olvido | Homenaje a José José', channel: 'Mon Laferte', time: '2022', img: 'https://i.ytimg.com/vi/RG8YSMUZ2Nk/hqdefault.jpg?sqp=-oaymwEmCOADEOgC8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgPyg5MA8=&rs=AOn4CLCt1zZA42R1MBvvVO3Z7OsIv76HFA', desc: 'Grande Homenaje' },
-        
-        { id: 'https://cnd-player-teleplus.blogspot.com/?player=plyr&provider=yt&link=https%3A%2F%2Fyoutu.be%2F5R1RGl4WQP8%3Fsi%3DRxgSeNoVSsG7h2zT', type: 'embed', title: 'Tu Falta De Querer', channel: 'Mon Laferte', time: '2017', img: 'https://i.ytimg.com/vi/5R1RGl4WQP8/hq720.jpg?sqp=-oaymwEcCK4FEIIDSEbyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLA8xyCe5uUaBTs0AcuQvEFuDXmovg', desc: 'Solo para migajeros' },
-        
-        { id: 'https://cnd-player-teleplus.blogspot.com/?player=plyr&provider=yt&link=https%3A%2F%2Fyoutu.be%2F48SWXqe1K-8%3Fsi%3DkeDAtU3yoC71Ym91', type: 'embed', title: 'Huele a peligro', channel: 'Myriam Hernández', time: '2019', img: 'https://i.ytimg.com/vi_webp/48SWXqe1K-8/hqdefault.webp', desc: '' },
-        
-        { id: 'https://cnd-player-teleplus.blogspot.com/?player=plyr&provider=yt&link=https%3A%2F%2Fyoutu.be%2F1ddK89KqVe8%3Fsi%3DhqTgINhdzSwtyLAg', type: 'embed', title: 'El Hombre Que Yo Amo', channel: 'Myriam Hernández', time: '2019', img: 'https://i.ytimg.com/vi/1ddK89KqVe8/hq720.jpg?sqp=-oaymwEcCK4FEIIDSEbyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLAvbFjDnKrAIGYih5lb742YiYDkLA', desc: 'Un clasico' },
-        
-        { id: 'https://cnd-player-teleplus.blogspot.com/?player=plyr&provider=yt&link=https%3A%2F%2Fyoutu.be%2FKc0ZZC9Z0Yw%3Fsi%3DDP_BANpoB7K1h-E9', type: 'embed', title: '40 y 20', channel: 'José José', time: '2025', img: 'https://i.ytimg.com/vi/Kc0ZZC9Z0Yw/hqdefault.jpg', desc: 'Es el amor lo que importa,y no lo que diga la gente' },
-        
-        { id: 'https://cnd-player-teleplus.blogspot.com/?player=plyr&provider=yt&link=https%3A%2F%2Fyoutu.be%2Fyh_uok6JDqA%3Fsi%3Dm5kNm8AHFha9htUZ', type: 'embed', title: 'El Triste ~ José José', channel: 'José José', time: '2024', img: 'https://i.ytimg.com/vi/yh_uok6JDqA/hqdefault.jpg', desc: 'Esta musica si pega duro' },
-        
-        { id: 'https://cnd-player-teleplus.blogspot.com/?player=plyr&provider=yt&link=https%3A%2F%2Fyoutu.be%2FBprZX_bGhhg%3Fsi%3DeGX1InFWAaZsx_KN', type: 'embed', title: ' La nave del olvido', channel: 'José José', time: '2022', img: 'https://i.ytimg.com/vi/BprZX_bGhhg/hq720.jpg?sqp=-oaymwEcCK4FEIIDSEbyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCpVJtn8U-3aBRVKhfRk42QNqNLfg', desc: '¡Pídele a tu dispositivo de voz que ponga a José José!' },
-            
-            { id: 'https://cnd-player-teleplus.blogspot.com/?player=plyr&provider=yt&link=https%3A%2F%2Fyoutu.be%2Fks_c2II1pcM%3Fsi%3DHElXXr-Jsojb2gpB', type: 'embed', title: 'José José ~ Volcan', channel: 'José José', time: '2025', img: 'https://i.ytimg.com/vi/ks_c2II1pcM/hqdefault.jpg', desc: 'Soy un volcan apagado' }
+        const MIS_IMAGENES = [
+            { id: "img_01", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/8c66d9a76af3473ecf218224c33be9d8.gif" },
+            { id: "img_02", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/636d4ef268bfc4c7bef422915a02773d.gif" },
+            { id: "img_03", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/7cc728f7b3c7b3e86c8c2fdcfc52a623.gif" },
+            { id: "img_04", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/fda276dafc235e1bf270a242d67f11e6.gif" },
+            { id: "img_05", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/883ad7aa677e20ac592eb117178a2a53.gif" },
+            { id: "img_06", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/1d08b08af331e0b3283ac3ddea072dbc.gif" },
+            { id: "img_07", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/4b0c27e34355f833f4b23a0385df245d.gif" },
+            { id: "img_08", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/fda00bc691cb2462be404e126bc7acef.gif" },
+            { id: "img_09", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/8ab76a842d91915a4516e91949a7e507.gif" },
+            { id: "img_11", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/9659c65a2f9ad5781ba426d8c09829e5.gif" },
+            { id: "img_12", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/1eb846fb5162289e6510d5b85d9ce01c.gif" },
+            { id: "img_13", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/dcd698c2983a470ba0b6cdb08e69f7ab.gif" },
+            { id: "img_14", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/d45f3f1deb77e9d5ff53a5c583939897.gif" },
+            { id: "img_15", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/38efb28f23007333a4ba62ea986af2d6.gif" },
+            { id: "img_16", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/912d88930b76e726389fbaa8bdac6e98.gif" },
+            { id: "img_17", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/3ae237c21bf0105aade7b834fae4077f.gif" },
+            { id: "img_18", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/d66894a09c9f1b022b2dfec8473c3dd5.gif" },
+            { id: "img_19", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/fae169ad863ec8b9319f43f202d22b20.gif" },
+            { id: "img_20", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/e3d8ec2c4c0a2d4fb70acb8c6093dad6.gif" },
+            { id: "img_21", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/ff8f4c27ec67982656c9777e8e6c62b2.gif" },
+            { id: "img_22", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/4dd4de9f2b0a01659a870fe4e7b02463.gif" },
+            { id: "img_23", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/ff04d8b078de3ea5d1c4178b25e006da.gif" },
+            { id: "img_24", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/a142f4836056db50861654df0521c00a.gif" },
+            { id: "img_25", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/596e5f98f503b99fd6bd107f76e85960.gif" },
         ];
 
-        const app = {
-            currentVideo: null,
-            historyStack: ['home'],
-            
-            data: {
-                favorites: [],
-                historyCount: 0,
-                settings: { autoplay: false, theme: 'dark', secureMode: true }, 
-                user: { name: 'Usuario Pro', desc: 'Fanático de los videos.', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Pro' }
-            },
+        // EL CONTENIDO AHORA ES ALEATORIO CADA VEZ QUE ENTRAS
+        const IMAGENES_ALEATORIAS = [...MIS_IMAGENES].sort(() => Math.random() - 0.5);
 
-            init: function() {
-                this.loadData();
-                this.applyTheme();
-                
-                this.renderSkeleton('home-grid');
-                setTimeout(() => {
-                    this.renderGrid(VIDEO_DB, 'home-grid');
-                }, 800); 
+        let db;
+        let modoFavoritos = false;
+        let listadoFavoritosLocal = [];
+        let fotoActual = null;
 
-                this.renderProfile();
-                
-                document.getElementById('pc-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') this.search('pc-input') });
-                document.getElementById('mob-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') this.search('mob-input') });
-            },
+        const SVG_LIKE = `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`;
+        const SVG_FAV = `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>`;
 
-            // --- CORE: RENDERIZADO DE EMBED DIRECTO (CON SANDBOX CAMUFLADO) ---
-            renderPlayerFrame: function(video) {
-                const container = document.getElementById('player-placeholder');
-                container.innerHTML = ''; 
-                
-                const iframe = document.createElement('iframe');
-                iframe.style.width = '100%';
-                iframe.style.height = '100%';
-                iframe.style.border = 'none';
-                iframe.allowFullscreen = true;
-                
-                let srcUrl = video.id;
-
-                if(this.data.settings.autoplay) {
-                    srcUrl += (srcUrl.includes('?') ? '&' : '?') + 'autoplay=1';
-                }
-
-                // TECNOLOGÍA ESCUDO INVISIBLE (AdBlock & Sandbox Camuflado)
-                if (this.data.settings.secureMode) {
-                    // Flags de alto espectro: permiten que el reproductor funcione pero bloquean el "escape" (popups y redirecciones)
-                    const stealthFlags = [
-                        'allow-scripts',
-                        'allow-same-origin',
-                        'allow-presentation',
-                        'allow-forms',
-                        'allow-pointer-lock'
-                    ].join(' ');
-                    
-                    iframe.setAttribute('sandbox', stealthFlags);
-                    
-                    const badge = `<div class="security-badge"><span class="material-symbols-rounded" style="font-size:14px">verified_user</span> Shield: AdBlock Invisible</div>`;
-                    this.injectBadge(badge);
-                } else {
-                    const badge = `<div class="security-badge off"><span class="material-symbols-rounded" style="font-size:14px">warning</span> Sin Protección</div>`;
-                    this.injectBadge(badge);
-                }
-
-                iframe.src = srcUrl;
-                // Políticas de permisos extendidas para compatibilidad total
-                iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; display-capture";
-                
-                container.appendChild(iframe);
-            },
-
-            injectBadge: function(html) {
-                const title = document.getElementById('w-title');
-                const prev = title.previousElementSibling;
-                if(prev && prev.classList.contains('security-badge')) prev.remove();
-                title.insertAdjacentHTML('beforebegin', html);
-            },
-
-            // --- NAVEGACIÓN ---
-            nav: function(viewId) {
-                if(viewId !== 'watch' && viewId !== 'search' && viewId !== 'channel') {
-                    this.historyStack = ['home'];
-                } else if (viewId !== this.historyStack[this.historyStack.length-1]) {
-                    this.historyStack.push(viewId);
-                }
-
-                document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
-                document.getElementById('view-' + viewId).classList.add('active');
-                
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                const navMap = { 'home': 0, 'favorites': 2, 'profile': 3 };
-                if(navMap[viewId] !== undefined) document.querySelectorAll('.nav-btn')[navMap[viewId]].classList.add('active');
-
-                if(viewId === 'favorites') this.renderFavorites();
-
-                document.getElementById('sidebar').classList.remove('open');
-                document.getElementById('backdrop').classList.remove('show');
-                document.getElementById('mobile-search-bar').classList.remove('show');
-
-                if(viewId !== 'watch') {
-                    document.getElementById('player-placeholder').innerHTML = '';
-                    const title = document.getElementById('w-title');
-                    const prev = title.previousElementSibling;
-                    if(prev && prev.classList.contains('security-badge')) prev.remove();
-                }
-                
-                window.scrollTo(0,0);
-            },
-
-            toggleSidebar: () => {
-                const sb = document.getElementById('sidebar');
-                const bd = document.getElementById('backdrop');
-                sb.classList.toggle('open');
-                bd.classList.toggle('show');
-            },
-
-            toggleSearch: () => {
-                const bar = document.getElementById('mobile-search-bar');
-                bar.classList.toggle('show');
-                if(bar.classList.contains('show')) document.getElementById('mob-input').focus();
-            },
-
-            search: function(inputId) {
-                const query = document.getElementById(inputId).value.toLowerCase().trim();
-                if(!query) return;
-
-                this.nav('search');
-                this.renderSkeleton('search-grid'); 
-
-                setTimeout(() => {
-                    const results = VIDEO_DB.filter(v => 
-                        v.title.toLowerCase().includes(query) || 
-                        v.channel.toLowerCase().includes(query)
-                    );
-                    document.getElementById('search-title').innerText = `Resultados para: "${query}"`;
-                    this.renderGrid(results, 'search-grid');
-                }, 500);
-
-                document.getElementById(inputId).blur();
-            },
-
-            // --- REPRODUCCIÓN ---
-            playVideo: function(url) {
-                const video = VIDEO_DB.find(v => v.id === url);
-                if(!video) return;
-                this.currentVideo = video;
-                
-                this.data.historyCount++;
-                this.saveData();
-
-                this.nav('watch');
-
-                document.getElementById('w-title').innerText = video.title;
-                document.getElementById('w-chan-name').innerText = video.channel;
-                document.getElementById('w-time').innerText = "Lanzamiento " + video.time;
-                document.getElementById('w-desc').innerText = video.desc;
-                document.getElementById('w-chan-img').style.backgroundImage = `url('${video.img}')`; 
-
-                this.updateFavButton();
-
-                const currentIndex = VIDEO_DB.findIndex(v => v.id === url);
-                const nextVideos = VIDEO_DB.slice(currentIndex + 1).concat(VIDEO_DB.slice(0, currentIndex)).slice(0, 4);
-                this.renderGrid(nextVideos, 'rec-grid');
-
-                this.renderPlayerFrame(video);
-            },
-
-            // --- RENDERIZADO ---
-            renderSkeleton: function(elementId) {
-                const grid = document.getElementById(elementId);
-                grid.innerHTML = Array(6).fill(0).map(() => `
-                    <div class="video-card">
-                        <div class="skeleton" style="width:100%; aspect-ratio:16/9; margin-bottom:10px;"></div>
-                        <div style="display:flex; gap:10px;">
-                            <div class="skeleton" style="width:36px; height:36px; border-radius:50%;"></div>
-                            <div style="flex:1;">
-                                <div class="skeleton" style="width:80%; height:15px; margin-bottom:5px;"></div>
-                                <div class="skeleton" style="width:60%; height:12px;"></div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            },
-
-            renderGrid: function(list, elementId) {
-                const grid = document.getElementById(elementId);
-                if(list.length === 0) {
-                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:var(--text-gray)">No se encontraron videos.</p>';
-                    return;
-                }
-                grid.innerHTML = list.map(v => `
-                    <div class="video-card" onclick="app.playVideo('${v.id}')">
-                        <div class="thumbnail-box">
-                            <img src="${v.img}" loading="lazy">
-                            <div class="duration">HD+</div>
-                        </div>
-                        <div class="meta-flex">
-                            <div class="chan-img" style="background-image:url('https://api.dicebear.com/7.x/avataaars/svg?seed=${v.channel}')"></div>
-                            <div class="info">
-                                <h3>${v.title}</h3>
-                                <p>${v.channel} • ${v.time}</p>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            },
-
-            renderProfile: function() {
-                document.getElementById('p-img').src = this.data.user.avatar;
-                document.getElementById('p-name').innerText = this.data.user.name;
-                document.getElementById('p-desc').innerText = this.data.user.desc;
-                document.getElementById('in-name').value = this.data.user.name;
-                document.getElementById('in-desc').value = this.data.user.desc;
-                document.getElementById('head-avatar').style.backgroundImage = `url('${this.data.user.avatar}')`;
-                
-                document.getElementById('stat-favs').innerText = this.data.favorites.length;
-                document.getElementById('stat-views').innerText = this.data.historyCount;
-
-                document.getElementById('set-autoplay').checked = this.data.settings.autoplay;
-                document.getElementById('set-theme').checked = this.data.settings.theme === 'light';
-                
-                if(!document.getElementById('set-secure')) {
-                    const settingsBox = document.querySelector('#view-settings > div');
-                    const secureHTML = `
-                        <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <h4 style="display:flex; align-items:center; gap:5px;"><span class="material-symbols-rounded" style="color:var(--accent)">shield</span> Seguridad Escudo Pro</h4>
-                                <p style="font-size:12px; color:var(--text-gray);">Bloquear popups y anuncios externos en embeds</p>
-                            </div>
-                            <input type="checkbox" id="set-secure" onchange="app.saveSettings()">
-                        </div>
-                    `;
-                    settingsBox.insertAdjacentHTML('afterbegin', secureHTML);
-                    setTimeout(() => document.getElementById('set-secure').checked = this.data.settings.secureMode, 100);
-                }
-            },
-            
-            uploadAvatar: function(input) {
-                if (input.files && input.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        app.data.user.avatar = e.target.result;
-                        app.renderProfile();
-                        app.saveData();
-                        app.toast("Foto actualizada");
-                    }
-                    reader.readAsDataURL(input.files[0]);
-                }
-            },
-
-            saveProfile: function() {
-                this.data.user.name = document.getElementById('in-name').value;
-                this.data.user.desc = document.getElementById('in-desc').value;
-                document.getElementById('p-name').innerText = this.data.user.name;
-                document.getElementById('p-desc').innerText = this.data.user.desc;
-                this.saveData();
-            },
-
-            saveSettings: function() {
-                this.data.settings.autoplay = document.getElementById('set-autoplay').checked;
-                this.data.settings.theme = document.getElementById('set-theme').checked ? 'light' : 'dark';
-                this.data.settings.secureMode = document.getElementById('set-secure').checked; 
-                
-                this.applyTheme();
-                this.saveData();
-                this.toast("Ajustes guardados");
-            },
-
-            applyTheme: function() {
-                if(this.data.settings.theme === 'light') document.body.setAttribute('data-theme', 'light');
-                else document.body.removeAttribute('data-theme');
-            },
-
-            // --- UTILS ---
-            share: function() {
-                if(this.currentVideo) {
-                    navigator.clipboard.writeText(this.currentVideo.id).then(() => this.toast("Enlace embed copiado")).catch(() => {});
-                }
-            },
-
-            toggleFav: function() {
-                if(!this.currentVideo) return;
-                const url = this.currentVideo.id;
-                const idx = this.data.favorites.indexOf(url);
-                
-                if(idx > -1) {
-                    this.data.favorites.splice(idx, 1);
-                    this.toast("Eliminado de favoritos");
-                } else {
-                    this.data.favorites.push(url);
-                    this.toast("Agregado a favoritos");
-                }
-                this.updateFavButton();
-                this.renderProfile(); 
-                this.saveData();
-            },
-            
-            renderFavorites: function() {
-                const favVideos = VIDEO_DB.filter(v => this.data.favorites.includes(v.id));
-                const grid = document.getElementById('fav-grid');
-                const msg = document.getElementById('fav-msg');
-                
-                if(favVideos.length > 0) {
-                    msg.style.display = 'none';
-                    this.renderGrid(favVideos, 'fav-grid');
-                } else {
-                    msg.style.display = 'block';
-                    grid.innerHTML = '';
-                }
-            },
-
-            updateFavButton: function() {
-                const btn = document.getElementById('btn-fav');
-                const lbl = document.getElementById('lbl-fav');
-                if(this.data.favorites.includes(this.currentVideo.id)) {
-                    btn.classList.add('active');
-                    lbl.innerText = "Guardado";
-                } else {
-                    btn.classList.remove('active');
-                    lbl.innerText = "Favorito";
-                }
-            },
-
-            toast: function(msg) {
-                const t = document.getElementById('toast');
-                t.innerText = msg;
-                t.className = "show";
-                setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
-            },
-
-            saveData: () => localStorage.setItem('tubehub_data_v4', JSON.stringify(app.data)),
-            loadData: function() {
-                const saved = localStorage.getItem('tubehub_data_v4');
-                if(saved) {
-                    const parsed = JSON.parse(saved);
-                    this.data = { ...this.data, ...parsed, settings: { ...this.data.settings, ...parsed.settings } };
-                }
-            },
-            
-            goBack: function() { 
-                if(this.historyStack.length > 1) {
-                    this.historyStack.pop();
-                    this.nav(this.historyStack[this.historyStack.length-1]);
-                } else this.nav('home');
-            },
-            openChannel: function(name) { 
-                document.getElementById('pc-input').value = name;
-                this.search('pc-input');
-            }
+        const dbRequest = indexedDB.open('MiGaleriaLocalDB', 1);
+        dbRequest.onupgradeneeded = (e) => {
+            let database = e.target.result;
+            if (!database.objectStoreNames.contains('user_likes')) database.createObjectStore('user_likes', { keyPath: 'id' });
+            if (!database.objectStoreNames.contains('user_favorites')) database.createObjectStore('user_favorites', { keyPath: 'id' });
+        };
+        dbRequest.onsuccess = (e) => {
+            db = e.target.result;
+            actualizarDatosYRenderizar();
         };
 
-        window.onload = () => app.init();
+        function guardarDato(almacen, id, activo) {
+            if (!db) return;
+            let tx = db.transaction(almacen, 'readwrite');
+            if (activo) tx.objectStore(almacen).put({ id: id });
+            else tx.objectStore(almacen).delete(id);
+            tx.oncomplete = actualizarDatosYRenderizar;
+        }
+
+        function actualizarDatosYRenderizar() {
+            if (!db) return;
+            db.transaction('user_favorites', 'readonly').objectStore('user_favorites').getAll().onsuccess = (e) => {
+                listadoFavoritosLocal = e.target.result.map(item => item.id);
+                db.transaction('user_likes', 'readonly').objectStore('user_likes').getAll().onsuccess = (e2) => {
+                    const likesLocal = e2.target.result.map(item => item.id);
+                    renderizarGridPrincipal(likesLocal);
+                    
+                    if (fotoActual) {
+                        const btn = document.getElementById('btnLikeDetalle');
+                        if (likesLocal.includes(fotoActual.id)) btn.classList.add('active');
+                        else btn.classList.remove('active');
+                    }
+                };
+            };
+        }
+
+        function renderizarGridPrincipal(likesLocal) {
+            const grid = document.getElementById('galeriaGrid');
+            const busqueda = document.getElementById('inputBuscar').value.toLowerCase().trim();
+            grid.innerHTML = '';
+
+            IMAGENES_ALEATORIAS.forEach(foto => {
+                if (modoFavoritos && !listadoFavoritosLocal.includes(foto.id)) return;
+                if (busqueda && !foto.titulo.toLowerCase().includes(busqueda)) return;
+
+                const esLike = likesLocal.includes(foto.id);
+                const esFav = listadoFavoritosLocal.includes(foto.id);
+
+                const card = document.createElement('div');
+                card.className = 'pin-card skeleton';
+                card.innerHTML = `
+                    <img src="${foto.url}" alt="${foto.titulo}">
+                    <div class="pin-overlay">
+                        <div class="pin-info-row">
+                            <span class="pin-title">${foto.titulo}</span>
+                            <div class="pin-actions">
+                                <button class="btn-glass btn-like ${esLike ? 'active' : ''}" data-id="${foto.id}">${SVG_LIKE}</button>
+                                <button class="btn-glass btn-fav ${esFav ? 'fav-active' : ''}" data-id="${foto.id}">${SVG_FAV}</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const img = card.querySelector('img');
+                img.addEventListener('load', () => {
+                    card.classList.remove('skeleton');
+                    img.classList.add('loaded');
+                });
+
+                card.addEventListener('click', (e) => {
+                    if (!e.target.closest('.btn-glass')) {
+                        abrirVistaDetalle(foto);
+                    }
+                });
+
+                // EVENTO DE MANTENER PRESIONADO (LONG PRESS) PARA CELULARES
+                let tiempoPresionado;
+                card.addEventListener('touchstart', () => {
+                    tiempoPresionado = setTimeout(() => {
+                        fotoActual = foto;
+                        abrirMenuOpciones();
+                    }, 500);
+                }, { passive: true });
+                card.addEventListener('touchend', () => clearTimeout(tiempoPresionado));
+                card.addEventListener('touchmove', () => clearTimeout(tiempoPresionado));
+
+                // CLIC DERECHO EN PC HACE LO MISMO
+                card.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    fotoActual = foto;
+                    abrirMenuOpciones();
+                });
+
+                card.querySelector('.btn-like').addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    btn.classList.toggle('active');
+                    guardarDato('user_likes', foto.id, btn.classList.contains('active'));
+                });
+
+                card.querySelector('.btn-fav').addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    btn.classList.toggle('fav-active');
+                    guardarDato('user_favorites', foto.id, btn.classList.contains('fav-active'));
+                });
+
+                grid.appendChild(card);
+            });
+        }
+
+        function abrirVistaDetalle(foto) {
+            fotoActual = foto;
+            document.getElementById('imgDetalleSrc').src = foto.url;
+            document.getElementById('pinTituloReal').textContent = foto.titulo;
+            document.getElementById('autorAvatar').textContent = foto.titulo.charAt(0).toUpperCase();
+            
+            document.getElementById('bottomNav').style.opacity = '0';
+            document.getElementById('bottomNav').style.pointerEvents = 'none';
+
+            renderizarExplorarMas(foto.id);
+
+            document.getElementById('vistaDetalle').classList.add('activa');
+            document.body.style.overflow = 'hidden';
+            actualizarDatosYRenderizar();
+        }
+
+        document.getElementById('btnCerrarDetalle').addEventListener('click', () => {
+            document.getElementById('vistaDetalle').classList.remove('activa');
+            document.body.style.overflow = 'auto';
+            document.getElementById('bottomNav').style.opacity = '1';
+            document.getElementById('bottomNav').style.pointerEvents = 'auto';
+            fotoActual = null;
+        });
+
+        // EL BOTÓN DE LIKE EN EL APARTADO DE DETALLES AHORA SÍ FUNCIONA PERFECTAMENTE
+        document.getElementById('btnLikeDetalle').addEventListener('click', (e) => {
+            if (!fotoActual) return;
+            const btn = e.currentTarget;
+            btn.classList.toggle('active');
+            guardarDato('user_likes', fotoActual.id, btn.classList.contains('active'));
+        });
+
+        function renderizarExplorarMas(idExcluido) {
+            const grid = document.getElementById('galeriaExplorar');
+            grid.innerHTML = '';
+            const recomendados = MIS_IMAGENES.filter(f => f.id !== idExcluido).sort(() => Math.random() - 0.5);
+            
+            recomendados.forEach(foto => {
+                const card = document.createElement('div');
+                card.className = 'pin-card skeleton';
+                card.innerHTML = `<img src="${foto.url}" loading="lazy">`;
+                const img = card.querySelector('img');
+                img.addEventListener('load', () => { card.classList.remove('skeleton'); img.classList.add('loaded'); });
+                
+                card.addEventListener('click', () => {
+                    document.getElementById('vistaDetalle').scrollTo({ top: 0, behavior: 'smooth' });
+                    abrirVistaDetalle(foto);
+                });
+                grid.appendChild(card);
+            });
+        }
+
+        // SISTEMA DE COMPARTIR NATIVO ESTILO CINEFLUX
+        document.getElementById('btnCompartirPin').addEventListener('click', async () => {
+            if(!fotoActual) return;
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: fotoActual.titulo,
+                        text: '¡Mira este contenido en mi galería!',
+                        url: fotoActual.url
+                    });
+                } catch (err) {
+                    console.log("Compartir cancelado o error:", err);
+                }
+            } else {
+                // Alternativa automática si el navegador no soporta el menú nativo
+                navigator.clipboard.writeText(fotoActual.url);
+                mostrarToast("Tu navegador no soporta compartir, ¡Enlace copiado!");
+            }
+        });
+
+        const overlay = document.getElementById('sheetOverlay');
+        const sheetOpciones = document.getElementById('bottomSheetOpciones');
+
+        function abrirMenuOpciones() {
+            overlay.classList.add('activo');
+            sheetOpciones.classList.add('activo');
+        }
+
+        document.getElementById('btnMenuOpciones').addEventListener('click', abrirMenuOpciones);
+
+        // SOPORTE DE MANTENER PRESIONADO EN LA IMAGEN DE LA VISTA DETALLE
+        const contenedorImgDetalle = document.getElementById('detalleImgContainer');
+        let tiempoPresionadoDetalle;
+        contenedorImgDetalle.addEventListener('touchstart', () => {
+            tiempoPresionadoDetalle = setTimeout(() => {
+                abrirMenuOpciones();
+            }, 500);
+        }, { passive: true });
+        contenedorImgDetalle.addEventListener('touchend', () => clearTimeout(tiempoPresionadoDetalle));
+        contenedorImgDetalle.addEventListener('touchmove', () => clearTimeout(tiempoPresionadoDetalle));
+        contenedorImgDetalle.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            abrirMenuOpciones();
+        });
+
+        function cerrarCajasFlotantes() {
+            overlay.classList.remove('activo');
+            sheetOpciones.classList.remove('activo');
+        }
+
+        overlay.addEventListener('click', cerrarCajasFlotantes);
+
+        document.getElementById('btnCopiarEnlace').addEventListener('click', () => {
+            if(fotoActual) {
+                navigator.clipboard.writeText(fotoActual.url).then(() => {
+                    cerrarCajasFlotantes();
+                    mostrarToast("¡Enlace copiado al portapapeles!");
+                });
+            }
+        });
+
+        document.getElementById('btnDescargarDispositivo').addEventListener('click', () => {
+            if(!fotoActual) return;
+            cerrarCajasFlotantes();
+            window.open(fotoActual.url, '_blank');
+        });
+
+        document.getElementById('navHome').addEventListener('click', () => {
+             conmutarMenuInferior('navHome'); modoFavoritos = false; document.getElementById('searchContainer').classList.remove('active'); actualizarDatosYRenderizar();
+        });
+        document.getElementById('navSearch').addEventListener('click', () => {
+            conmutarMenuInferior('navSearch'); modoFavoritos = false; document.getElementById('searchContainer').classList.add('active'); document.getElementById('inputBuscar').focus(); actualizarDatosYRenderizar();
+        });
+        document.getElementById('navFavs').addEventListener('click', () => {
+            conmutarMenuInferior('navFavs'); modoFavoritos = true; document.getElementById('searchContainer').classList.remove('active'); actualizarDatosYRenderizar();
+        });
+
+        function conmutarMenuInferior(id) {
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        document.getElementById('inputBuscar').addEventListener('input', () => actualizarDatosYRenderizar());
+
+        function mostrarToast(msg) {
+            const t = document.getElementById('appToast');
+            t.textContent = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
     </script>
 </body>
 </html>
