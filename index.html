@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mi Galería Pro</title>
+    <title>Mi Galería Multimedia Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
             --bg-puro: #0f0f11;
@@ -12,185 +13,274 @@
             --texto: #ffffff;
             --texto-muted: #a1a1aa;
             --pinterest-red: #e60023;
-            --pinterest-hover: #cc001f;
             --corazon: #ff0040;
             --estrella: #eab308;
             --glass: rgba(255, 255, 255, 0.08);
             --glass-border: rgba(255, 255, 255, 0.05);
         }
 
-        * {
-            margin: 0; padding: 0; box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
 
-        body {
-            background-color: var(--bg-puro); color: var(--texto);
-            padding: 15px 10px 100px 10px; min-height: 100vh; overflow-x: hidden;
-        }
+        body { background-color: var(--bg-puro); color: var(--texto); min-height: 100vh; height: 100vh; overflow: hidden; position: relative; }
 
         @keyframes pulse { 0% { background-color: #1a1a1f; } 50% { background-color: #26262b; } 100% { background-color: #1a1a1f; } }
         .skeleton { animation: pulse 1.5s infinite ease-in-out; }
 
-        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 10px 25px 10px; max-width: 1400px; margin: 0 auto; }
+        header { height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; max-width: 1400px; margin: 0 auto; }
         .logo-container { display: flex; align-items: center; gap: 8px; }
         .logo-icon { width: 32px; height: 32px; background: var(--pinterest-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.2rem; }
         .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; }
-        .header-icons { display: flex; gap: 15px; }
-        .header-icons svg { width: 26px; height: 26px; fill: none; stroke: var(--texto); stroke-width: 1.8; cursor: pointer; }
 
-        .galeria-masonry { column-count: 2; column-gap: 12px; max-width: 1400px; margin: 0 auto; }
+        .seccion-app { display: none; position: absolute; top: 70px; bottom: 0; left: 0; right: 0; overflow-y: auto; padding: 10px 15px 120px 15px; max-width: 1400px; margin: 0 auto; -webkit-overflow-scrolling: touch; }
+        .seccion-app.activa { display: block; }
+
+        .galeria-masonry { column-count: 2; column-gap: 12px; width: 100%; }
         @media (min-width: 640px) { .galeria-masonry { column-count: 3; } }
         @media (min-width: 1024px) { .galeria-masonry { column-count: 4; column-gap: 16px; } }
-        @media (min-width: 1400px) { .galeria-masonry { column-count: 5; } }
 
-        .pin-card { break-inside: avoid; margin-bottom: 12px; border-radius: 16px; overflow: hidden; position: relative; background: var(--bg-tarjeta); cursor: pointer; transition: transform 0.2s ease; user-select: none; -webkit-user-select: none; }
-        .pin-card:active { transform: scale(0.98); }
+        .pin-card { break-inside: avoid; margin-bottom: 12px; border-radius: 16px; overflow: hidden; position: relative; background: var(--bg-tarjeta); cursor: pointer; transition: transform 0.2s ease; user-select: none; }
         .pin-card img { width: 100%; display: block; border-radius: 16px; transition: opacity 0.3s ease; opacity: 0; pointer-events: none; }
         .pin-card img.loaded { opacity: 1; }
 
-        .pin-overlay {
-            position: absolute; bottom: 0; left: 0; right: 0; top: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%);
-            padding: 14px; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; transition: opacity 0.25s ease;
-        }
+        .pin-overlay { position: absolute; bottom: 0; left: 0; right: 0; top: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%); padding: 14px; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; transition: opacity 0.25s ease; }
         @media (max-width: 768px) { .pin-overlay { opacity: 1; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 40%); } }
         .pin-card:hover .pin-overlay { opacity: 1; }
         .pin-info-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .pin-title { font-size: 0.85rem; font-weight: 600; color: #fff; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pin-actions { display: flex; gap: 6px; }
         
-        .btn-glass {
-            background: var(--glass); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            border: 1px solid var(--glass-border); width: 34px; height: 34px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s, transform 0.1s;
-        }
-        .btn-glass:active { transform: scale(0.9); }
-        .btn-glass svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.8; }
+        .btn-glass { background: var(--glass); backdrop-filter: blur(8px); border: 1px solid var(--glass-border); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s, transform 0.1s; }
+        .btn-glass svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.8; pointer-events: none; }
         .btn-glass.active svg { fill: var(--corazon); stroke: var(--corazon); }
         .btn-glass.fav-active svg { fill: var(--estrella); stroke: var(--estrella); }
 
-        .search-container { display: none; padding: 0 10px 20px 10px; max-width: 1400px; margin: 0 auto; }
-        .search-container.active { display: block; }
-        .search-input { width: 100%; background: var(--bg-tarjeta); border: 1px solid var(--glass-border); padding: 14px 22px; border-radius: 30px; color: #fff; font-size: 1rem; outline: none; transition: border-color 0.2s; }
-        .search-input:focus { border-color: rgba(255,255,255,0.2); }
+        /* VIDEOS - GRID Y TARJETAS */
+        .videos-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 640px) { .videos-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
+        @media (min-width: 1100px) { .videos-grid { grid-template-columns: repeat(3, 1fr); } }
 
-        .bottom-nav {
-            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-            background: rgba(24, 24, 28, 0.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            padding: 10px 24px; border-radius: 40px; display: flex; gap: 30px; z-index: 1000;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.7); border: 1px solid var(--glass-border);
-        }
-        .nav-item { background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 8px; border-radius: 50%; }
-        .nav-item svg { width: 26px; height: 26px; fill: none; stroke: var(--texto-muted); stroke-width: 1.8; transition: stroke 0.2s; }
+        .video-card-yt { background: transparent; display: flex; flex-direction: column; gap: 12px; cursor: pointer; }
+        .vid-thumb-container { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 14px; overflow: hidden; background: #000; border: 1px solid var(--glass-border); }
+        
+        .vid-thumb-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; pointer-events: none; opacity: 0.85; transition: opacity 0.3s; object-fit: cover; }
+        .video-card-yt:hover .vid-thumb-container iframe { opacity: 1; }
+
+        .vid-blocker-top { position: absolute; top: 0; left: 0; width: 100%; height: 45px; background: #000; z-index: 5; pointer-events: none; }
+        .vid-blocker-bottom { position: absolute; bottom: 0; left: 0; width: 100%; height: 45px; background: #000; z-index: 5; pointer-events: none; }
+
+        .vid-click-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; cursor: pointer; background: transparent; }
+
+        .btn-play-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(230, 0, 35, 0.95); width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.4); opacity: 0; transition: opacity 0.2s, transform 0.2s; z-index: 15; pointer-events: none; }
+        .video-card-yt:hover .btn-play-center { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+        @media (max-width: 768px) { .btn-play-center { opacity: 1; } }
+        .btn-play-center svg { width: 20px; height: 20px; fill: #fff; margin-left: 3px; }
+
+        .badge-duration { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.9); padding: 3px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: #fff; letter-spacing: 0.5px; z-index: 15; }
+        
+        .vid-info-container { display: flex; gap: 12px; padding: 0 4px; }
+        .vid-avatar { width: 36px; height: 36px; border-radius: 50%; background: #2a2a32; border: 1px solid var(--glass-border); display: flex; flex-shrink: 0; align-items: center; justify-content: center; font-weight: 700; color: var(--texto-muted); font-size: 0.9rem; }
+        .vid-text-block { flex-grow: 1; overflow: hidden; }
+        .vid-title { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
+        .vid-channel { font-size: 0.8rem; color: var(--texto-muted); }
+        .vid-actions-block { display: flex; gap: 6px; flex-shrink: 0; align-items: flex-start; }
+
+        /* NAV INFERIOR */
+        .bottom-nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(24, 24, 28, 0.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 10px 20px; border-radius: 40px; display: flex; gap: 20px; z-index: 1000; box-shadow: 0 12px 40px rgba(0,0,0,0.7); border: 1px solid var(--glass-border); }
+        .nav-item { background: transparent; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 20px; color: var(--texto-muted); font-size: 0.65rem; gap: 4px; font-weight: 600; }
+        .nav-item svg { width: 22px; height: 22px; fill: none; stroke: var(--texto-muted); stroke-width: 1.8; transition: stroke 0.2s; }
+        .nav-item.active { color: #fff; }
         .nav-item.active svg { stroke: var(--texto); stroke-width: 2.2; }
 
-        /* VISTA DETALLE */
-        .vista-detalle {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: var(--bg-puro); z-index: 2000;
-            display: flex; flex-direction: column;
-            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.1, 0.76, 0.55, 0.94);
-            overflow-y: auto; overflow-x: hidden;
-        }
+        /* SOLICITUDES */
+        .solicitud-container-split { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 900px) { .solicitud-container-split { grid-template-columns: 1.2fr 1fr; } }
+        .solicitud-wrapper, .historial-wrapper { background: var(--bg-tarjeta); padding: 25px; border-radius: 24px; border: 1px solid var(--glass-border); height: fit-content; }
+        .solicitud-wrapper h2 { font-size: 1.3rem; margin-bottom: 6px; }
+        .solicitud-wrapper p { color: var(--texto-muted); font-size: 0.85rem; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--texto-muted); }
+        .form-control { background: var(--bg-sheet); border: 1px solid var(--glass-border); padding: 12px 16px; border-radius: 12px; color: #fff; font-size: 0.95rem; outline: none; width: 100%; resize: none; }
+        .btn-enviar-solicitud { background: var(--pinterest-red); color: #fff; border: none; padding: 14px; width: 100%; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-enviar-solicitud:disabled { background: #26262b; color: #555; cursor: not-allowed; }
+        .historial-wrapper h3 { font-size: 1.1rem; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .historial-items { display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; }
+        .historial-card { background: var(--bg-sheet); padding: 12px; border-radius: 12px; border: 1px solid var(--glass-border); font-size: 0.85rem; }
+        .h-meta { display: flex; justify-content: space-between; color: var(--texto-muted); font-size: 0.75rem; margin-bottom: 6px; }
+        .h-badge { background: rgba(0, 230, 115, 0.15); color: #00e673; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; }
+        .limite-alerta { color: var(--corazon); font-size: 0.8rem; text-align: center; margin-top: 10px; font-weight: 600; display: none; }
+
+        /* SEGURIDAD INICIAL */
+        .seguridad-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-puro); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .login-box { max-width: 340px; width: 100%; text-align: center; }
+        .login-icon-lock { width: 60px; height: 60px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 1px solid var(--glass-border); }
+        .login-icon-lock svg { width: 28px; height: 28px; fill: none; stroke: var(--pinterest-red); stroke-width: 2; }
+        .login-box h2 { font-size: 1.5rem; margin-bottom: 8px; font-weight: 700; }
+        .login-box p { color: var(--texto-muted); font-size: 0.85rem; margin-bottom: 25px; }
+        .input-password { width: 100%; background: var(--bg-tarjeta); border: 1px solid var(--glass-border); padding: 16px; border-radius: 14px; color: #fff; text-align: center; font-size: 1.3rem; letter-spacing: 4px; outline: none; margin-bottom: 15px; }
+        .btn-login { background: #fff; color: #000; border: none; width: 100%; padding: 15px; border-radius: 14px; font-weight: 700; font-size: 0.95rem; cursor: pointer; }
+
+        /* VISTA DETALLE FOTO */
+        .vista-detalle { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-puro); z-index: 2000; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.1, 0.76, 0.55, 0.94); overflow-y: auto; }
         .vista-detalle.activa { transform: translateY(0); }
-
-        .detalle-nav-top {
-            position: sticky; top: 0; background: rgba(15, 15, 17, 0.85); backdrop-filter: blur(10px);
-            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; z-index: 2020;
-        }
-
-        .btn-save-pinterest {
-            background: var(--pinterest-red); color: #fff; border: none; padding: 10px 20px; border-radius: 24px; font-weight: 700; font-size: 0.95rem; cursor: pointer;
-        }
-        .btn-save-pinterest:active { background: var(--pinterest-hover); }
-
-        .detalle-img-container {
-            width: 100%; display: flex; justify-content: center; align-items: center;
-            background: #050507; padding: 10px 0; position: relative;
-        }
-        .detalle-img-container img {
-            max-width: 100%; max-height: 80vh; object-fit: contain; display: block;
-        }
-
+        .detalle-nav-top { position: sticky; top: 0; background: rgba(15, 15, 17, 0.85); backdrop-filter: blur(10px); display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; z-index: 2020; }
+        .btn-save-pinterest { background: var(--pinterest-red); color: #fff; border: none; padding: 10px 20px; border-radius: 24px; font-weight: 700; font-size: 0.95rem; cursor: pointer; }
+        .detalle-img-container { width: 100%; display: flex; justify-content: center; align-items: center; background: #050507; padding: 10px 0; }
+        .detalle-img-container img { max-width: 100%; max-height: 80vh; object-fit: contain; }
         .detalle-info-box { max-width: 750px; margin: 0 auto; width: 100%; padding: 20px; }
-        .detalle-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .detalle-meta-row { display: flex; justify-content: space-between; align-items: center; }
         .autor-info { display: flex; align-items: center; gap: 10px; }
         .autor-avatar { width: 40px; height: 40px; background: #3a3a42; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
         .autor-name { font-weight: 600; font-size: 1rem; }
-        
         .detalle-iconos-row { display: flex; gap: 12px; }
-
         .mas-explorar { padding: 40px 10px 120px 10px; max-width: 1400px; margin: 0 auto; border-top: 1px solid var(--glass-border); }
-        .mas-explorar h3 { font-size: 1.1rem; margin-bottom: 20px; text-align: center; font-weight: 700; }
+        .mas-explorar h3 { font-size: 1.1rem; margin-bottom: 20px; text-align: center; }
+
+        /* REPRODUCTOR FULLSCREEN */
+        #videoFullscreenContainer { display: none; position: fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:9999; }
+        #videoFullscreenContainer iframe { width:100%; height:100%; border:none; position: absolute; top: 0; left: 0; z-index: 1; }
+
+        /* OVERLAYS SÓLIDOS NEGROS (FULLSCREEN) */
+        .fs-blocker-top { position: absolute; top: 0; left: 0; width: 100%; height: 75px; background: #000000; z-index: 10; pointer-events: none; }
+        .fs-blocker-bottom { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #000000; z-index: 2; pointer-events: none; }
+
+        .btn-sandbox-config { position: absolute; top: 15px; left: 15px; z-index: 50; background: transparent; border: none; cursor: pointer; padding: 5px; border-radius: 50%; transition: background 0.2s; }
+        .btn-sandbox-config:hover { background: rgba(255,255,255,0.1); }
+        .btn-sandbox-config svg { width: 28px; height: 28px; fill: none; stroke: #fff; stroke-width: 2; }
+        
+        .sandbox-menu { 
+            position: absolute; top: 65px; left: 15px; background: rgba(24, 24, 28, 0.98); backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border); padding: 18px; border-radius: 14px; z-index: 60;
+            display: none; color: #fff; min-width: 240px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .sandbox-menu.active { display: block; }
+        .sandbox-menu h4 { margin-bottom: 12px; font-size: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; color: var(--pinterest-red); }
+        .sandbox-menu label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 0.85rem; cursor: pointer; font-weight: 600; }
+        .sandbox-menu input[type="checkbox"] { accent-color: var(--pinterest-red); width: 18px; height: 18px; cursor: pointer; }
+
+        .btn-close-fs { position: absolute; top: 15px; right: 15px; z-index: 50; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 38px; height: 38px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .btn-close-fs svg { width: 20px; height: 20px; stroke: #fff; stroke-width: 2; }
+        
+        .vid-pro-controls { position: absolute; top: 15px; right: 65px; display: flex; gap: 10px; z-index: 50; }
+        .btn-pro-tool { background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 38px; height: 38px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; }
+        .btn-pro-tool svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; }
+        
+        .pro-dropdown-panel { position: absolute; top: 48px; right: 0; background: rgba(24, 24, 28, 0.98); border: 1px solid var(--glass-border); border-radius: 12px; padding: 6px; display: none; flex-direction: column; min-width: 110px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 100; }
+        .pro-dropdown-panel.active { display: flex; }
+        .pro-dropdown-panel.grid-mode { display: none; grid-template-columns: repeat(3, 1fr); gap: 4px; min-width: 190px; }
+        .pro-dropdown-panel.grid-mode.active { display: grid; }
+        .pro-option-item { background: var(--bg-sheet); border: none; color: #fff; padding: 8px; text-align: center; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .pro-option-item:hover { background: var(--pinterest-red); }
 
         /* BOTTOM SHEET OPCIONES */
         .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(4px); }
         .sheet-overlay.activo { opacity: 1; pointer-events: auto; }
-
-        .bottom-sheet {
-            position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--bg-sheet); border-top-left-radius: 24px; border-top-right-radius: 24px;
-            padding: 20px 20px 40px 20px; z-index: 3010; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94);
-        }
+        .bottom-sheet { position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--bg-sheet); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 20px 20px 40px 20px; z-index: 3010; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94); }
         .bottom-sheet.activo { transform: translateY(0); }
         .sheet-linea { width: 36px; height: 5px; background: #444; border-radius: 5px; margin: 0 auto 20px auto; }
         .sheet-titulo { font-size: 1.1rem; font-weight: 700; text-align: center; margin-bottom: 20px; }
-        
         .tablero-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tarjeta); border-radius: 12px; cursor: pointer; }
-        .tablero-item:active { background: #2a2a32; }
-
-        .toast {
-            position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-100px);
-            background: #fff; color: #000; padding: 12px 24px; border-radius: 30px;
-            font-weight: 700; font-size: 0.9rem; z-index: 4000; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
+        
+        .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #fff; color: #000; padding: 12px 24px; border-radius: 30px; font-weight: 700; font-size: 0.9rem; z-index: 6000; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         .toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
+
+    <div class="seguridad-screen" id="seguridadScreen">
+        <div class="login-box">
+            <div class="login-icon-lock">
+                <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            </div>
+            <h2 id="seguridadTitulo">Crear Contraseña</h2>
+            <p id="seguridadDesc">Asigna una clave rápida de acceso (Anteriormente guardada).</p>
+            <input type="password" class="input-password" id="inputPass" maxlength="8" placeholder="••••">
+            <button class="btn-login" id="btnAccederSeguridad">Configurar</button>
+        </div>
+    </div>
 
     <header>
         <div class="logo-container">
             <div class="logo-icon">M</div>
             <div class="logo">Mi Galería</div>
         </div>
-        <div class="header-icons">
-            <svg id="headerMsg" viewBox="0 0 24 24"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12c0 1.886.522 3.65 1.433 5.158L2.05 21.95l4.908-1.28A9.957 9.957 0 0012 22z"/></svg>
-        </div>
     </header>
 
-    <div class="search-container" id="searchContainer">
-        <input type="text" class="search-input" id="inputBuscar" placeholder="Buscar por título...">
-    </div>
+    <main class="seccion-app activa" id="seccionHome">
+        <div class="galeria-masonry" id="galeriaGrid"></div>
+    </main>
 
-    <main class="galeria-masonry" id="galeriaGrid"></main>
+    <section class="seccion-app" id="seccionVideos">
+        <div class="videos-grid" id="videosGrid"></div>
+    </section>
+
+    <section class="seccion-app" id="seccionFavs">
+        <h3 id="txtFavsFotos" style="margin-bottom:15px; font-size:1.1rem; font-weight:700; display:none;">Fotos Guardadas</h3>
+        <div class="galeria-masonry" id="favsFotosGrid" style="margin-bottom: 25px;"></div>
+        
+        <h3 id="txtFavsVideos" style="margin-bottom:15px; font-size:1.1rem; font-weight:700; display:none;">Videos Guardados</h3>
+        <div class="videos-grid" id="favsVideosGrid"></div>
+
+        <p id="favsVacio" style="text-align:center; color:var(--texto-muted); width:100%; padding:40px 0; display:none;">No hay colecciones guardadas.</p>
+    </section>
+
+    <section class="seccion-app" id="seccionSolicitar">
+        <div class="solicitud-container-split">
+            <div class="solicitud-wrapper">
+                <h2>Formulario de Solicitud</h2>
+                <p>Pide el contenido multimedia que desees de forma silenciosa al Admin.</p>
+                <form id="formSolicitud">
+                    <div class="form-group">
+                        <label>Nombre o Alias</label>
+                        <input type="text" id="solNombre" name="Usuario" class="form-control" placeholder="Ej: User99" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="solTipo" name="Tipo" class="form-control">
+                            <option value="Foto">Foto Especial</option>
+                            <option value="Video">Video Clip</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Detalles del pedido</label>
+                        <textarea id="solDetalle" name="Detalles" rows="3" class="form-control" placeholder="Descripción del pedido..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-enviar-solicitud" id="btnEnviarForm">
+                        <span id="btnTexto">Enviar Solicitud</span>
+                    </button>
+                    <div class="limite-alerta" id="alertaLimite">⚠️ Has alcanzado el límite de 2 solicitudes por hoy.</div>
+                </form>
+            </div>
+            
+            <div class="historial-wrapper">
+                <h3>Buzón Local de Envíos</h3>
+                <div class="historial-items" id="historialList"></div>
+            </div>
+        </div>
+    </section>
 
     <nav class="bottom-nav" id="bottomNav">
         <button class="nav-item active" id="navHome">
-            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path d="M9 22V12h6v10"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>Fotos
         </button>
-        <button class="nav-item" id="navSearch">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <button class="nav-item" id="navVideos">
+            <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Videos
         </button>
         <button class="nav-item" id="navFavs">
-            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>Favoritos
+        </button>
+        <button class="nav-item" id="navSolicitar">
+            <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Solicitar
         </button>
     </nav>
 
     <div class="vista-detalle" id="vistaDetalle">
         <div class="detalle-nav-top">
-            <button class="btn-glass" id="btnCerrarDetalle" style="border-radius: 50%;">
-                <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            </button>
+            <button class="btn-glass" id="btnCerrarDetalle"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
             <button class="btn-save-pinterest" id="btnCompartirPin">Compartir</button>
         </div>
-        
         <div class="detalle-img-container" id="detalleImgContainer">
             <img id="imgDetalleSrc" src="" alt="">
         </div>
-
         <div class="detalle-info-box">
             <div class="detalle-meta-row">
                 <div class="autor-info">
@@ -201,33 +291,77 @@
                     </div>
                 </div>
                 <div class="detalle-iconos-row">
-                    <button class="btn-glass" id="btnLikeDetalle">
-                        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                    <button class="btn-glass" id="btnExtraerTexto" title="Escanear Texto">
+                        <svg viewBox="0 0 24 24" style="width:18px; height:18px; fill:none; stroke:#fff; stroke-width:1.8;"><path d="M4 7V4h3M17 4h3v3M4 17v3h3M17 20h3v-3M9 12h6M12 9v6"/></svg>
                     </button>
-                    <button class="btn-glass" id="btnMenuOpciones">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-                    </button>
+                    <button class="btn-glass" id="btnLikeDetalle"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button>
+                    <button class="btn-glass" id="btnMenuOpciones"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
                 </div>
             </div>
         </div>
-
         <div class="mas-explorar">
-            <h3>Más imágenes de la galería</h3>
+            <h3>Más imágenes sugeridas</h3>
             <div class="galeria-masonry" id="galeriaExplorar"></div>
         </div>
     </div>
 
+    <div id="videoFullscreenContainer">
+        <div class="fs-blocker-top"></div>
+        <div class="fs-blocker-bottom"></div>
+
+        <button class="btn-sandbox-config" id="btnSandboxMenu" title="Configurar Sandbox">
+            <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+
+        <div class="vid-pro-controls" id="containerHerramientasPro">
+            <button class="btn-pro-tool" id="btnProVelocidad" title="Velocidad">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="#fff"/><path d="M12 6v6l4 2" stroke="#fff"/></svg>
+                <div class="pro-dropdown-panel" id="panelProVelocidad">
+                    <div class="pro-option-item" data-vel="0.5">0.5x</div>
+                    <div class="pro-option-item" data-vel="1">1.0x</div>
+                    <div class="pro-option-item" data-vel="1.5">1.5x</div>
+                    <div class="pro-option-item" data-vel="2">2.0x</div>
+                </div>
+            </button>
+            <button class="btn-pro-tool" id="btnProSalto" title="Saltar Tiempo">
+                <svg viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M4 5l7 7-7 7" stroke="#fff"/></svg>
+                <div class="pro-dropdown-panel grid-mode" id="panelProSalto">
+                    <div class="pro-option-item" data-sec="30">+30s</div>
+                    <div class="pro-option-item" data-sec="60">+1m</div>
+                    <div class="pro-option-item" data-sec="180">+3m</div>
+                    <div class="pro-option-item" data-sec="300">+5m</div>
+                </div>
+            </button>
+        </div>
+
+        <button class="btn-close-fs" id="btnCloseFs" title="Cerrar Video"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+
+        <div class="sandbox-menu" id="sandboxPanel">
+            <h4>Seguridad Sandbox</h4>
+            <label><span>Scripts</span> <input type="checkbox" id="chkScripts"></label>
+            <label><span>Same Origin</span> <input type="checkbox" id="chkSameOrigin"></label>
+            <label><span>Popups</span> <input type="checkbox" id="chkPopups"></label>
+            <label><span>Forms</span> <input type="checkbox" id="chkForms"></label>
+            <label><span>Presentation</span> <input type="checkbox" id="chkPresentation"></label>
+        </div>
+
+        <iframe id="fullscreenIframe" allow="autoplay; fullscreen; encrypted-media"></iframe>
+    </div>
+
     <div class="sheet-overlay" id="sheetOverlay"></div>
-    
     <div class="bottom-sheet" id="bottomSheetOpciones">
         <div class="sheet-linea"></div>
-        <div class="sheet-titulo">Opciones de la Imagen</div>
+        <div class="sheet-titulo">Opciones Extras</div>
+        <div class="tablero-item" id="btnCopiarImagenRaw" style="margin-bottom: 8px;">
+            <span>Copiar imagen en Alta Calidad</span>
+            <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:none; stroke:#fff; stroke-width:2;"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2M15 2H9a1 1 0 00-1 1v2a1 1 0 001 1h6a1 1 0 001-1V3a1 1 0 00-1-1z"/></svg>
+        </div>
         <div class="tablero-item" id="btnCopiarEnlace" style="margin-bottom: 8px;">
             <span>Copiar enlace de origen</span>
             <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:none; stroke:#fff; stroke-width:2;"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg>
         </div>
         <div class="tablero-item" id="btnDescargarDispositivo" style="color: var(--pinterest-red);">
-            <span>Abrir Imagen Directa</span>
+            <span>Descargar al dispositivo</span>
             <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:none; stroke:var(--pinterest-red); stroke-width:2;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
         </div>
     </div>
@@ -235,61 +369,158 @@
     <div class="toast" id="appToast">Mensaje</div>
 
     <script>
-        const MIS_IMAGENES = [
-            { id: "img_01", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/8c66d9a76af3473ecf218224c33be9d8.gif" },
-            { id: "img_02", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/636d4ef268bfc4c7bef422915a02773d.gif" },
-            { id: "img_03", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/7cc728f7b3c7b3e86c8c2fdcfc52a623.gif" },
-            { id: "img_04", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/fda276dafc235e1bf270a242d67f11e6.gif" },
-            { id: "img_05", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/883ad7aa677e20ac592eb117178a2a53.gif" },
-            { id: "img_06", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/1d08b08af331e0b3283ac3ddea072dbc.gif" },
-            { id: "img_07", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/4b0c27e34355f833f4b23a0385df245d.gif" },
-            { id: "img_08", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/fda00bc691cb2462be404e126bc7acef.gif" },
-            { id: "img_09", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/8ab76a842d91915a4516e91949a7e507.gif" },
-            { id: "img_11", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/9659c65a2f9ad5781ba426d8c09829e5.gif" },
-            { id: "img_12", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/1eb846fb5162289e6510d5b85d9ce01c.gif" },
-            { id: "img_13", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/dcd698c2983a470ba0b6cdb08e69f7ab.gif" },
-            { id: "img_14", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/d45f3f1deb77e9d5ff53a5c583939897.gif" },
-            { id: "img_15", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/38efb28f23007333a4ba62ea986af2d6.gif" },
-            { id: "img_16", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/912d88930b76e726389fbaa8bdac6e98.gif" },
-            { id: "img_17", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/3ae237c21bf0105aade7b834fae4077f.gif" },
-            { id: "img_18", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/d66894a09c9f1b022b2dfec8473c3dd5.gif" },
-            { id: "img_19", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/fae169ad863ec8b9319f43f202d22b20.gif" },
-            { id: "img_20", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/e3d8ec2c4c0a2d4fb70acb8c6093dad6.gif" },
-            { id: "img_21", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/ff8f4c27ec67982656c9777e8e6c62b2.gif" },
-            { id: "img_22", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/4dd4de9f2b0a01659a870fe4e7b02463.gif" },
-            { id: "img_23", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/ff04d8b078de3ea5d1c4178b25e006da.gif" },
-            { id: "img_24", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/a142f4836056db50861654df0521c00a.gif" },
-            { id: "img_25", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/596e5f98f503b99fd6bd107f76e85960.gif" },
+        // === MÓDULO DE DATOS ===
+        const DATA_FOTOS = [            
+            { id: "img_02", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/8c66d9a76af3473ecf218224c33be9d8.gif", tipo: "foto" },
+            { id: "img_03", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/636d4ef268bfc4c7bef422915a02773d.gif", tipo: "foto" },
+            { id: "img_04", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/7cc728f7b3c7b3e86c8c2fdcfc52a623.gif", tipo: "foto" },
+            { id: "img_05", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/fda276dafc235e1bf270a242d67f11e6.gif", tipo: "foto" },
+            { id: "img_06", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/883ad7aa677e20ac592eb117178a2a53.gif", tipo: "foto" },
+            { id: "img_07", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/1d08b08af331e0b3283ac3ddea072dbc.gif", tipo: "foto" },
+            { id: "img_08", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/4b0c27e34355f833f4b23a0385df245d.gif", tipo: "foto" },
+            { id: "img_09", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/fda00bc691cb2462be404e126bc7acef.gif", tipo: "foto" },
+            { id: "img_11", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/8ab76a842d91915a4516e91949a7e507.gif", tipo: "foto" },
+            { id: "img_12", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/9659c65a2f9ad5781ba426d8c09829e5.gif", tipo: "foto" },
+            { id: "img_13", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/1eb846fb5162289e6510d5b85d9ce01c.gif", tipo: "foto" },
+            { id: "img_14", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/dcd698c2983a470ba0b6cdb08e69f7ab.gif", tipo: "foto" },
+            { id: "img_15", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/d45f3f1deb77e9d5ff53a5c583939897.gif", tipo: "foto" },
+            { id: "img_16", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/38efb28f23007333a4ba62ea986af2d6.gif", tipo: "foto" },
+            { id: "img_17", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/912d88930b76e726389fbaa8bdac6e98.gif", tipo: "foto" },
+            { id: "img_18", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/3ae237c21bf0105aade7b834fae4077f.gif", tipo: "foto" },
+            { id: "img_19", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/d66894a09c9f1b022b2dfec8473c3dd5.gif", tipo: "foto" },
+            { id: "img_20", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/fae169ad863ec8b9319f43f202d22b20.gif", tipo: "foto" },
+            { id: "img_21", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/e3d8ec2c4c0a2d4fb70acb8c6093dad6.gif", tipo: "foto" },
+            { id: "img_22", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/ff8f4c27ec67982656c9777e8e6c62b2.gif", tipo: "foto" },
+            { id: "img_23", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/4dd4de9f2b0a01659a870fe4e7b02463.gif", tipo: "foto" },
+            { id: "img_24", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/ff04d8b078de3ea5d1c4178b25e006da.gif", tipo: "foto" },
+            { id: "img_25", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/a142f4836056db50861654df0521c00a.gif", tipo: "foto" },
+            { id: "img_26", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/308f48ce4f9e4e2018260f189d1fd420.gif", tipo: "foto" },
+            { id: "img_27", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/d2a6f46d47b88e1261cd0c9d213c978a.gif", tipo: "foto" },
+            { id: "img_28", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/cf5f5ffb6bb6d3e3798507f740f95221.gif", tipo: "foto" },
+            { id: "img_29", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/cc7ca191708c0cc04f8a8a85bd1a6931.gif", tipo: "foto" },
+            { id: "img_30", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/4758b6d1b3ca0ad4fcf3568b8942cb4c.gif", tipo: "foto" },
+            { id: "img_31", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/d37999ebb7a18544939311dc21b6368a.gif", tipo: "foto" },
+            { id: "img_32", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/5d1bf013df568bdb615b5e094c70abe3.gif", tipo: "foto" },
+            { id: "img_33", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/e74e4d36b71b1de0f8bb45a6a5bf630a.gif", tipo: "foto" },
+            { id: "img_34", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/582506618b8ebf04ec66effc6b98f816.gif", tipo: "foto" },
+            { id: "img_35", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/9a7bf87081728b5272dbba6ce1c45c5c.gif", tipo: "foto" },
+            { id: "img_36", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/82d27db910bb705ce5e801e37100738f.gif", tipo: "foto" },
+            { id: "img_37", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/3ff4b2646132b3bed76f3332fe1fff6e.gif", tipo: "foto" },
+            { id: "img_38", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/16e897fc1bb7f227fc5f774b7e7f08b7.gif", tipo: "foto" },
+            { id: "img_39", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/dd0ca521541cc9f755b0f59b8bf7ad93.gif", tipo: "foto" },            
+            { id: "img_40", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/5b42ca3c4703c6932662c8f584aa3bb6.gif", tipo: "foto" },
+            { id: "img_41", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/3a5bab6af8098c893eda14c9173cd5ce.gif", tipo: "foto" },
+            { id: "img_42", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/7cd99c11ff5e46548793654f2ab8f4af.gif", tipo: "foto" },
+            { id: "img_43", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/acff637b2ee5fab251798eefa55e0737.gif", tipo: "foto" },
+            { id: "img_44", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/e2592173681d66eb2e7c0921b8363bbb.gif", tipo: "foto" },
+            { id: "img_45", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/30e6cfdb014af451b019a88fd695bae7.gif", tipo: "foto" },
+            { id: "img_46", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/0137e10f2ab4bd43a39b35e49abf4135.gif", tipo: "foto" },
+            { id: "img_47", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/9b22b27a5eebe7a18c568264aeaaf9fd.gif", tipo: "foto" },
+            { id: "img_48", titulo: "DE TELEGRAM", url: "https://i.picasion.com/pic93/3fc74c44617ca131b312fdfadf92467a.gif", tipo: "foto" },
         ];
 
-        // EL CONTENIDO AHORA ES ALEATORIO CADA VEZ QUE ENTRAS
-        const IMAGENES_ALEATORIAS = [...MIS_IMAGENES].sort(() => Math.random() - 0.5);
+        const DATA_VIDEOS = [
+            { id: "vid_01", titulo: "TELEGRAM VIDEOS", canal: "NOVA STREAMING", url: "https://www.xvideos.com/embedframe/opihkhm425e", duracion: "EXCLUSIVO", tipo: "video" },
+            
+            { id: "vid_02", titulo: "TELEGRAM VIDEOS", canal: "NOVA STREAMING", url: "https://www.xnxx.es/embedframe/oocfkkfdacf", duracion: "EXCLUSIVO", tipo: "video" },
+            
+            { id: "vid_03", titulo: "TELEGRAM VIDEOS", canal: "NOVA STREAMING", url: "https://www.pornhub.com/embed/672e8b035c0bd", duracion: "EXCLUSIVO", tipo: "video" },
+            
+            { id: "vid_04", titulo: "TELEGRAM VIDEOS", canal: "NOVA STREAMING", url: "https://es.xhamster.com/embed/", duracion: "EXCLUSIVO", tipo: "video" },
+            
+            { id: "vid_05", titulo: "TELEGRAM VIDEOS", canal: "NOVA STREAMING", url: "https://www.porn300.com/es/video/sucio-trio-con-pamela-sanchez-y-sara-may/embed/", duracion: "EXCLUSIVO", tipo: "video" },
+            
+            { id: "vid_06", titulo: "TELEGRAM VIDEOS", canal: "NOVA STREAMING", url: "https://www.porn300.com/es/video/lexi-se-da-al-lesbico-en-la-lavanderia/embed/", duracion: "EXCLUSIVO", tipo: "video" },
+            
+            { id: "vid_07", titulo: "TELEGRAM VIDEOS", canal: "NOVA STREAMING", url: "https://www.porn300.com/es/video/mujer-espanola-madura-follada/embed/", duracion: "EXCLUSIVO", tipo: "video" },
+            
+            { id: "vid_08", titulo: "TELEGRAM VIDEOS", canal: "NOVA STREAMING", url: "https://www.pornhub.com/embed/6a2046e73a58d", duracion: "EXCLUSIVO", tipo: "video" },
+            
+            { id: "vid_09", titulo: "TELEGRAM VIDEOS", canal: "NOVA STREAMING", url: "https://www.porn300.com/es/video/dulces-lesbianas-buscan-el-orgasmo-juntas/embed/", duracion: "EXCLUSIVO", tipo: "video" },
+            
+            { id: "vid_10", titulo: "TELEGRAM VIDEOS", canal: "NOVA STREAMING", url: "https://www.porn300.com/es/video/dulces-lesbianas-comiendo-conos/embed/", duracion: "EXCLUSIVO", tipo: "video" },
+        ];
+
+        const FOTOS_ALEATORIAS = [...DATA_FOTOS].sort(() => Math.random() - 0.5);
+        const VIDEOS_ALEATORIOS = [...DATA_VIDEOS].sort(() => Math.random() - 0.5);
 
         let db;
-        let modoFavoritos = false;
         let listadoFavoritosLocal = [];
+        let listadoLikesLocal = [];
         let fotoActual = null;
+        let configSandbox = { id: 'sandbox_prefs', scripts: true, sameOrigin: true, popups: false, forms: false, presentation: true };
 
         const SVG_LIKE = `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`;
         const SVG_FAV = `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>`;
 
-        const dbRequest = indexedDB.open('MiGaleriaLocalDB', 1);
+        // === DESBLOQUEO POR CONTRASEÑA ===
+        document.addEventListener("DOMContentLoaded", () => {
+            const passGuardada = localStorage.getItem("app_password");
+            const screen = document.getElementById("seguridadScreen");
+            const titulo = document.getElementById("seguridadTitulo");
+            const desc = document.getElementById("seguridadDesc");
+            const btn = document.getElementById("btnAccederSeguridad");
+            const input = document.getElementById("inputPass");
+
+            if (!passGuardada) {
+                titulo.textContent = "Crear Contraseña";
+                desc.textContent = "Define un pin seguro de entrada (Máx. 8 letras/números).";
+                btn.textContent = "Guardar Clave";
+                btn.onclick = () => {
+                    const val = input.value.trim();
+                    if(!val) return mostrarToast("Ingresa algo válido");
+                    localStorage.setItem("app_password", val);
+                    screen.style.display = "none";
+                };
+            } else {
+                titulo.textContent = "Seguridad Activa";
+                desc.textContent = "Introduce el PIN de administrador corporativo.";
+                btn.textContent = "Entrar";
+                btn.onclick = () => {
+                    if(input.value.trim() === passGuardada) {
+                        screen.style.display = "none";
+                    } else {
+                        mostrarToast("❌ PIN Incorrecto");
+                        input.value = "";
+                    }
+                };
+            }
+            chequearLimiteSolicitudes();
+            renderizarHistorialLocal();
+            vincularEventosHerramientasPro();
+            vincularMenuSandbox();
+        });
+
+        // === BASE DE DATOS LOCAL ===
+        const dbRequest = indexedDB.open('MiGaleriaLocalDB', 3);
         dbRequest.onupgradeneeded = (e) => {
             let database = e.target.result;
             if (!database.objectStoreNames.contains('user_likes')) database.createObjectStore('user_likes', { keyPath: 'id' });
             if (!database.objectStoreNames.contains('user_favorites')) database.createObjectStore('user_favorites', { keyPath: 'id' });
+            if (!database.objectStoreNames.contains('app_settings')) database.createObjectStore('app_settings', { keyPath: 'id' });
         };
         dbRequest.onsuccess = (e) => {
             db = e.target.result;
-            actualizarDatosYRenderizar();
+            db.transaction('app_settings').objectStore('app_settings').get('sandbox_prefs').onsuccess = (e_sb) => {
+                if(e_sb.target.result) { 
+                    configSandbox = e_sb.target.result; 
+                }
+                aplicarCheckboxSandboxUI();
+                actualizarDatosYRenderizar();
+            };
         };
 
         function guardarDato(almacen, id, activo) {
             if (!db) return;
             let tx = db.transaction(almacen, 'readwrite');
-            if (activo) tx.objectStore(almacen).put({ id: id });
-            else tx.objectStore(almacen).delete(id);
-            tx.oncomplete = actualizarDatosYRenderizar;
+            let store = tx.objectStore(almacen);
+            if (activo) store.put({ id: id }); else store.delete(id);
+            tx.oncomplete = () => {
+                db.transaction('user_favorites', 'readonly').objectStore('user_favorites').getAll().onsuccess = (ev) => {
+                    listadoFavoritosLocal = ev.target.result.map(item => item.id);
+                    renderizarGridFavoritos(); 
+                };
+            };
         }
 
         function actualizarDatosYRenderizar() {
@@ -297,233 +528,408 @@
             db.transaction('user_favorites', 'readonly').objectStore('user_favorites').getAll().onsuccess = (e) => {
                 listadoFavoritosLocal = e.target.result.map(item => item.id);
                 db.transaction('user_likes', 'readonly').objectStore('user_likes').getAll().onsuccess = (e2) => {
-                    const likesLocal = e2.target.result.map(item => item.id);
-                    renderizarGridPrincipal(likesLocal);
-                    
-                    if (fotoActual) {
-                        const btn = document.getElementById('btnLikeDetalle');
-                        if (likesLocal.includes(fotoActual.id)) btn.classList.add('active');
-                        else btn.classList.remove('active');
-                    }
+                    listadoLikesLocal = e2.target.result.map(item => item.id);
+                    renderizarGridFotos();
+                    renderizarGridVideos();
+                    renderizarGridFavoritos();
                 };
             };
         }
 
-        function renderizarGridPrincipal(likesLocal) {
-            const grid = document.getElementById('galeriaGrid');
-            const busqueda = document.getElementById('inputBuscar').value.toLowerCase().trim();
-            grid.innerHTML = '';
-
-            IMAGENES_ALEATORIAS.forEach(foto => {
-                if (modoFavoritos && !listadoFavoritosLocal.includes(foto.id)) return;
-                if (busqueda && !foto.titulo.toLowerCase().includes(busqueda)) return;
-
-                const esLike = likesLocal.includes(foto.id);
+        // === CONSTRUCCIÓN ELEMENTOS MULTIMEDIA ===
+        function renderizarGridFotos() {
+            const grid = document.getElementById('galeriaGrid'); grid.innerHTML = '';
+            FOTOS_ALEATORIAS.forEach(foto => {
+                const esLike = listadoLikesLocal.includes(foto.id);
                 const esFav = listadoFavoritosLocal.includes(foto.id);
-
                 const card = document.createElement('div');
                 card.className = 'pin-card skeleton';
+                
                 card.innerHTML = `
-                    <img src="${foto.url}" alt="${foto.titulo}">
-                    <div class="pin-overlay">
-                        <div class="pin-info-row">
-                            <span class="pin-title">${foto.titulo}</span>
-                            <div class="pin-actions">
-                                <button class="btn-glass btn-like ${esLike ? 'active' : ''}" data-id="${foto.id}">${SVG_LIKE}</button>
-                                <button class="btn-glass btn-fav ${esFav ? 'fav-active' : ''}" data-id="${foto.id}">${SVG_FAV}</button>
-                            </div>
-                        </div>
-                    </div>
+                    <img src="${foto.url}">
+                    <div class="pin-overlay"><div class="pin-info-row"><span class="pin-title">${foto.titulo}</span>
+                    <div class="pin-actions"><button class="btn-glass btn-like ${esLike ? 'active' : ''}">${SVG_LIKE}</button><button class="btn-glass btn-fav ${esFav ? 'fav-active' : ''}">${SVG_FAV}</button></div></div></div>
                 `;
-
                 const img = card.querySelector('img');
-                img.addEventListener('load', () => {
-                    card.classList.remove('skeleton');
-                    img.classList.add('loaded');
-                });
-
-                card.addEventListener('click', (e) => {
-                    if (!e.target.closest('.btn-glass')) {
-                        abrirVistaDetalle(foto);
-                    }
-                });
-
-                // EVENTO DE MANTENER PRESIONADO (LONG PRESS) PARA CELULARES
-                let tiempoPresionado;
-                card.addEventListener('touchstart', () => {
-                    tiempoPresionado = setTimeout(() => {
-                        fotoActual = foto;
-                        abrirMenuOpciones();
-                    }, 500);
-                }, { passive: true });
-                card.addEventListener('touchend', () => clearTimeout(tiempoPresionado));
-                card.addEventListener('touchmove', () => clearTimeout(tiempoPresionado));
-
-                // CLIC DERECHO EN PC HACE LO MISMO
-                card.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    fotoActual = foto;
-                    abrirMenuOpciones();
-                });
-
-                card.querySelector('.btn-like').addEventListener('click', (e) => {
-                    const btn = e.currentTarget;
-                    btn.classList.toggle('active');
-                    guardarDato('user_likes', foto.id, btn.classList.contains('active'));
-                });
-
-                card.querySelector('.btn-fav').addEventListener('click', (e) => {
-                    const btn = e.currentTarget;
-                    btn.classList.toggle('fav-active');
-                    guardarDato('user_favorites', foto.id, btn.classList.contains('fav-active'));
-                });
-
+                img.onload = () => { card.classList.remove('skeleton'); img.classList.add('loaded'); };
+                card.onclick = (e) => { if (!e.target.closest('.btn-glass')) abrirVistaDetalle(foto); };
+                
+                card.querySelector('.btn-like').onclick = (e) => { e.stopPropagation(); e.currentTarget.classList.toggle('active'); guardarDato('user_likes', foto.id, e.currentTarget.classList.contains('active')); };
+                card.querySelector('.btn-fav').onclick = (e) => { e.stopPropagation(); e.currentTarget.classList.toggle('fav-active'); guardarDato('user_favorites', foto.id, e.currentTarget.classList.contains('fav-active')); };
                 grid.appendChild(card);
             });
         }
 
+        function obtenerStringSandbox() {
+            let s = [];
+            if(configSandbox.scripts) s.push('allow-scripts');
+            if(configSandbox.sameOrigin) s.push('allow-same-origin');
+            if(configSandbox.popups) s.push('allow-popups');
+            if(configSandbox.forms) s.push('allow-forms');
+            if(configSandbox.presentation) s.push('allow-presentation');
+            return s.join(' ');
+        }
+
+        function aplicarCheckboxSandboxUI() {
+            document.getElementById('chkScripts').checked = configSandbox.scripts;
+            document.getElementById('chkSameOrigin').checked = configSandbox.sameOrigin;
+            document.getElementById('chkPopups').checked = configSandbox.popups;
+            document.getElementById('chkForms').checked = configSandbox.forms;
+            document.getElementById('chkPresentation').checked = configSandbox.presentation;
+        }
+
+        function vincularMenuSandbox() {
+            const btn = document.getElementById('btnSandboxMenu');
+            const menu = document.getElementById('sandboxPanel');
+            btn.onclick = () => menu.classList.toggle('active');
+            
+            ['chkScripts', 'chkSameOrigin', 'chkPopups', 'chkForms', 'chkPresentation'].forEach(id => {
+                document.getElementById(id).onchange = (e) => {
+                    const key = id.replace('chk', '');
+                    const kLower = key.charAt(0).toLowerCase() + key.slice(1);
+                    configSandbox[kLower] = e.target.checked;
+                    if(db) {
+                        let tx = db.transaction('app_settings', 'readwrite');
+                        tx.objectStore('app_settings').put(configSandbox);
+                    }
+                    mostrarToast("Sandbox actualizado. Abre el video de nuevo.");
+                };
+            });
+        }
+
+        function renderizarGridVideos() {
+            const grid = document.getElementById('videosGrid'); grid.innerHTML = '';
+            VIDEOS_ALEATORIOS.forEach(vid => {
+                const esFav = listadoFavoritosLocal.includes(vid.id);
+                const card = document.createElement('div');
+                card.className = 'video-card-yt';
+                
+                card.innerHTML = `
+                    <div class="vid-thumb-container">
+                        <div class="vid-blocker-top"></div><div class="vid-blocker-bottom"></div>
+                        <iframe src="${vid.url}?autoplay=0&controls=0" loading="lazy"></iframe>
+                        <div class="vid-click-overlay"></div>
+                        <span class="badge-duration">${vid.duracion}</span>
+                        <div class="btn-play-center"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                    </div>
+                    <div class="vid-info-container">
+                        <div class="vid-avatar">${vid.canal.charAt(0)}</div>
+                        <div class="vid-text-block"><div class="vid-title">${vid.titulo}</div><div class="vid-channel">${vid.canal}</div></div>
+                        <div class="vid-actions-block"><button class="btn-glass btn-fav ${esFav ? 'fav-active' : ''}">${SVG_FAV}</button></div>
+                    </div>
+                `;
+                card.querySelector('.vid-click-overlay').onclick = () => ejecutarVideoFullscreen(vid.url);
+                card.querySelector('.btn-fav').onclick = (e) => { e.stopPropagation(); e.currentTarget.classList.toggle('fav-active'); guardarDato('user_favorites', vid.id, e.currentTarget.classList.contains('fav-active')); };
+                grid.appendChild(card);
+            });
+        }
+
+        // === REPRODUCTOR FULLSCREEN Y CONTROLES ===
+        function ejecutarVideoFullscreen(urlLimpia) {
+            const contenedor = document.getElementById('videoFullscreenContainer');
+            const iframe = document.getElementById('fullscreenIframe');
+            
+            document.getElementById('bottomNav').style.display = "none";
+            contenedor.style.display = "block";
+
+            iframe.sandbox = obtenerStringSandbox();
+            const union = urlLimpia.includes('?') ? '&' : '?';
+            iframe.src = `${urlLimpia}${union}autoplay=1&controls=1&enablejsapi=1`;
+
+            if (contenedor.requestFullscreen) contenedor.requestFullscreen();
+            else if (contenedor.webkitRequestFullscreen) contenedor.webkitRequestFullscreen();
+        }
+
+        function vincularEventosHerramientasPro() {
+            const panelVel = document.getElementById('panelProVelocidad');
+            const panelSalto = document.getElementById('panelProSalto');
+            const iframe = document.getElementById('fullscreenIframe');
+
+            document.getElementById('btnProVelocidad').onclick = (e) => { e.stopPropagation(); panelSalto.classList.remove('active'); panelVel.classList.toggle('active'); };
+            document.getElementById('btnProSalto').onclick = (e) => { e.stopPropagation(); panelVel.classList.remove('active'); panelSalto.classList.toggle('active'); };
+
+            document.getElementById('videoFullscreenContainer').onclick = (e) => {
+                if(!e.target.closest('.vid-pro-controls') && !e.target.closest('#btnSandboxMenu') && !e.target.closest('.sandbox-menu')) {
+                    panelVel.classList.remove('active');
+                    panelSalto.classList.remove('active');
+                    document.getElementById('sandboxPanel').classList.remove('active');
+                }
+            };
+
+            panelVel.querySelectorAll('.pro-option-item').forEach(opt => {
+                opt.onclick = (e) => {
+                    const vel = e.target.getAttribute('data-vel');
+                    iframe.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'setPlaybackRate', args: [parseFloat(vel)]}), '*');
+                    mostrarToast(`Velocidad: ${vel}x`);
+                    panelVel.classList.remove('active');
+                }
+            });
+
+            panelSalto.querySelectorAll('.pro-option-item').forEach(opt => {
+                opt.onclick = (e) => {
+                    const segundos = parseInt(e.target.getAttribute('data-sec'));
+                    iframe.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'seekTo', args: [segundos, true]}), '*');
+                    mostrarToast(`Adelantado con éxito`);
+                    panelSalto.classList.remove('active');
+                }
+            });
+        }
+
+        document.getElementById('btnCloseFs').onclick = () => {
+            if(document.fullscreenElement) document.exitFullscreen();
+            else if(document.webkitFullscreenElement) document.webkitExitFullscreen();
+            cerrarLimpiarReproductor();
+        };
+
+        function cerrarLimpiarReproductor() {
+            const iframe = document.getElementById('fullscreenIframe');
+            iframe.src = "";
+            const contenedor = document.getElementById('videoFullscreenContainer');
+            contenedor.style.display = "none";
+            document.getElementById('bottomNav').style.display = "flex";
+        }
+
+        // === ENVIAR SOLICITUD (MAILTO) ===
+        function getFechaHoy() { return new Date().toISOString().split('T')[0]; }
+
+        function chequearLimiteSolicitudes() {
+            const hoy = getFechaHoy();
+            const registros = JSON.parse(localStorage.getItem("solicitudes_logs") || "{}");
+            if(registros[hoy] >= 2) {
+                document.getElementById('btnEnviarForm').disabled = true;
+                document.getElementById('alertaLimite').style.display = "block";
+                return false;
+            }
+            return true;
+        }
+
+        document.getElementById('formSolicitud').onsubmit = function(e) {
+            e.preventDefault();
+            if(!chequearLimiteSolicitudes()) return;
+
+            const correoAdmin = "xplaymovies2024@gmail.com"; 
+            const nombre = document.getElementById('solNombre').value;
+            const tipo = document.getElementById('solTipo').value;
+            const detalles = document.getElementById('solDetalle').value;
+
+            const asunto = encodeURIComponent(`Pedido Multimedia Galería: ${tipo}`);
+            const cuerpo = encodeURIComponent(`Admin,\n\nNueva petición de contenido:\n• Alias: ${nombre}\n• Tipo: ${tipo}\n• Detalles: ${detalles}`);
+            
+            window.location.href = `mailto:${correoAdmin}?subject=${asunto}&body=${cuerpo}`;
+
+            const listadoPedidos = JSON.parse(localStorage.getItem("buzon_solicitudes") || "[]");
+            listadoPedidos.unshift({ nombre, tipo, detalles, fecha: new Date().toLocaleString() });
+            localStorage.setItem("buzon_solicitudes", JSON.stringify(listadoPedidos));
+
+            const hoy = getFechaHoy();
+            const registros = JSON.parse(localStorage.getItem("solicitudes_logs") || "{}");
+            registros[hoy] = (registros[hoy] || 0) + 1;
+            localStorage.setItem("solicitudes_logs", JSON.stringify(registros));
+
+            document.getElementById('formSolicitud').reset();
+            renderizarHistorialLocal();
+            chequearLimiteSolicitudes();
+        };
+
+        function renderizarHistorialLocal() {
+            const container = document.getElementById('historialList');
+            const items = JSON.parse(localStorage.getItem("buzon_solicitudes") || "[]");
+            container.innerHTML = '';
+            if(items.length === 0) { container.innerHTML = `<p style="font-size:0.8rem; color:var(--texto-muted); text-align:center;">Ningún pedido local hecho.</p>`; return; }
+            items.forEach(i => {
+                const d = document.createElement('div'); d.className = 'historial-card';
+                d.innerHTML = `<div class="h-meta"><span>${i.fecha}</span> <span class="h-badge">Registrado</span></div><div><b>${i.nombre}</b> - ${i.detalles}</div>`;
+                container.appendChild(d);
+            });
+        }
+
+        // === FAVORITOS ===
+        function renderizarGridFavoritos() {
+            const fGrid = document.getElementById('favsFotosGrid'); 
+            const vGrid = document.getElementById('favsVideosGrid');
+            const tFotos = document.getElementById('txtFavsFotos');
+            const tVideos = document.getElementById('txtFavsVideos');
+            const vVacio = document.getElementById('favsVacio');
+
+            fGrid.innerHTML = ''; 
+            vGrid.innerHTML = '';
+            
+            const fFav = DATA_FOTOS.filter(f => listadoFavoritosLocal.includes(f.id));
+            const vFav = DATA_VIDEOS.filter(v => listadoFavoritosLocal.includes(v.id));
+
+            if(fFav.length === 0 && vFav.length === 0) {
+                tFotos.style.display = "none"; tVideos.style.display = "none"; vVacio.style.display = "block"; return;
+            } else {
+                vVacio.style.display = "none";
+            }
+
+            if(fFav.length > 0) { 
+                tFotos.style.display = "block"; 
+                fFav.forEach(foto => {
+                    const card = document.createElement('div'); card.className = 'pin-card loaded';
+                    card.innerHTML = `<img src="${foto.url}" style="opacity:1;">`;
+                    card.onclick = () => abrirVistaDetalle(foto);
+                    fGrid.appendChild(card);
+                }); 
+            } else { tFotos.style.display = "none"; }
+
+            if(vFav.length > 0) {
+                tVideos.style.display = "block";
+                vFav.forEach(vid => {
+                    const card = document.createElement('div'); card.className = 'video-card-yt';
+                    card.innerHTML = `
+                        <div class="vid-thumb-container" style="border: 2px solid var(--pinterest-red);">
+                            <div class="vid-blocker-top"></div><div class="vid-blocker-bottom"></div>
+                            <iframe src="${vid.url}?autoplay=0&controls=0" loading="lazy"></iframe>
+                            <div class="vid-click-overlay"></div>
+                            <div class="btn-play-center"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                        </div>
+                        <div class="vid-info-container" style="padding-top:10px;"><div class="vid-text-block"><div class="vid-title">${vid.titulo}</div></div></div>
+                    `;
+                    card.querySelector('.vid-click-overlay').onclick = () => ejecutarVideoFullscreen(vid.url);
+                    vGrid.appendChild(card);
+                });
+            } else { tVideos.style.display = "none"; }
+        }
+
+        // === SUGERENCIAS DE FOTOS (ALEATORIAS) ===
+        function renderizarSugerencias() {
+            const grid = document.getElementById('galeriaExplorar');
+            grid.innerHTML = ''; // Limpiamos sugerencias anteriores
+            
+            // Filtramos la foto actual para no repetirla y ordenamos aleatoriamente
+            const sugerencias = DATA_FOTOS
+                .filter(f => !fotoActual || f.id !== fotoActual.id)
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 6); // Muestra 6 imágenes sugeridas
+
+            sugerencias.forEach(foto => {
+                const card = document.createElement('div');
+                card.className = 'pin-card loaded';
+                card.innerHTML = `<img src="${foto.url}" style="opacity:1; cursor:pointer;">`;
+                
+                // Al hacer click en una sugerencia, hacemos scroll arriba y la abrimos
+                card.onclick = () => {
+                    document.getElementById('vistaDetalle').scrollTo({top: 0, behavior: 'smooth'});
+                    abrirVistaDetalle(foto);
+                };
+                grid.appendChild(card);
+            });
+        }
+
+        // === VISTA DETALLE Y ACCIONES PRO ===
         function abrirVistaDetalle(foto) {
             fotoActual = foto;
             document.getElementById('imgDetalleSrc').src = foto.url;
             document.getElementById('pinTituloReal').textContent = foto.titulo;
-            document.getElementById('autorAvatar').textContent = foto.titulo.charAt(0).toUpperCase();
+            document.getElementById('bottomNav').style.display = 'none';
             
-            document.getElementById('bottomNav').style.opacity = '0';
-            document.getElementById('bottomNav').style.pointerEvents = 'none';
-
-            renderizarExplorarMas(foto.id);
-
+            renderizarSugerencias(); // Cargamos la sugerencias
+            
             document.getElementById('vistaDetalle').classList.add('activa');
-            document.body.style.overflow = 'hidden';
-            actualizarDatosYRenderizar();
         }
 
-        document.getElementById('btnCerrarDetalle').addEventListener('click', () => {
+        document.getElementById('btnCerrarDetalle').onclick = () => {
             document.getElementById('vistaDetalle').classList.remove('activa');
-            document.body.style.overflow = 'auto';
-            document.getElementById('bottomNav').style.opacity = '1';
-            document.getElementById('bottomNav').style.pointerEvents = 'auto';
-            fotoActual = null;
-        });
+            document.getElementById('bottomNav').style.display = 'flex';
+        };
 
-        // EL BOTÓN DE LIKE EN EL APARTADO DE DETALLES AHORA SÍ FUNCIONA PERFECTAMENTE
-        document.getElementById('btnLikeDetalle').addEventListener('click', (e) => {
-            if (!fotoActual) return;
-            const btn = e.currentTarget;
-            btn.classList.toggle('active');
-            guardarDato('user_likes', fotoActual.id, btn.classList.contains('active'));
-        });
-
-        function renderizarExplorarMas(idExcluido) {
-            const grid = document.getElementById('galeriaExplorar');
-            grid.innerHTML = '';
-            const recomendados = MIS_IMAGENES.filter(f => f.id !== idExcluido).sort(() => Math.random() - 0.5);
-            
-            recomendados.forEach(foto => {
-                const card = document.createElement('div');
-                card.className = 'pin-card skeleton';
-                card.innerHTML = `<img src="${foto.url}" loading="lazy">`;
-                const img = card.querySelector('img');
-                img.addEventListener('load', () => { card.classList.remove('skeleton'); img.classList.add('loaded'); });
-                
-                card.addEventListener('click', () => {
-                    document.getElementById('vistaDetalle').scrollTo({ top: 0, behavior: 'smooth' });
-                    abrirVistaDetalle(foto);
-                });
-                grid.appendChild(card);
-            });
-        }
-
-        // SISTEMA DE COMPARTIR NATIVO ESTILO CINEFLUX
-        document.getElementById('btnCompartirPin').addEventListener('click', async () => {
+        // Compartir Nativo
+        document.getElementById('btnCompartirPin').onclick = async () => {
             if(!fotoActual) return;
-            
             if (navigator.share) {
                 try {
-                    await navigator.share({
-                        title: fotoActual.titulo,
-                        text: '¡Mira este contenido en mi galería!',
-                        url: fotoActual.url
-                    });
-                } catch (err) {
-                    console.log("Compartir cancelado o error:", err);
-                }
+                    await navigator.share({ title: fotoActual.titulo, text: "Mira esto!", url: fotoActual.url });
+                    mostrarToast("¡Compartido!");
+                } catch(e) { console.log(e); }
             } else {
-                // Alternativa automática si el navegador no soporta el menú nativo
                 navigator.clipboard.writeText(fotoActual.url);
-                mostrarToast("Tu navegador no soporta compartir, ¡Enlace copiado!");
+                mostrarToast("Enlace copiado");
             }
-        });
+        };
+
+        // Escáner OCR Nativo
+        document.getElementById('btnExtraerTexto').onclick = () => {
+            if(!fotoActual) return;
+            mostrarToast("Analizando texto en imagen...");
+            Tesseract.recognize(fotoActual.url, 'spa').then(({ data: { text } }) => {
+                if(text && text.trim().length > 0) {
+                    navigator.clipboard.writeText(text);
+                    mostrarToast("¡Texto extraído y copiado!");
+                    alert("Texto:\n" + text);
+                } else {
+                    mostrarToast("No hay texto legible");
+                }
+            }).catch(e => mostrarToast("Error OCR"));
+        };
 
         const overlay = document.getElementById('sheetOverlay');
-        const sheetOpciones = document.getElementById('bottomSheetOpciones');
+        const sheet = document.getElementById('bottomSheetOpciones');
+        
+        document.getElementById('btnMenuOpciones').onclick = () => {
+            overlay.classList.add('activo'); sheet.classList.add('activo');
+        };
 
-        function abrirMenuOpciones() {
-            overlay.classList.add('activo');
-            sheetOpciones.classList.add('activo');
-        }
+        overlay.onclick = () => {
+            overlay.classList.remove('activo'); sheet.classList.remove('activo');
+        };
 
-        document.getElementById('btnMenuOpciones').addEventListener('click', abrirMenuOpciones);
-
-        // SOPORTE DE MANTENER PRESIONADO EN LA IMAGEN DE LA VISTA DETALLE
-        const contenedorImgDetalle = document.getElementById('detalleImgContainer');
-        let tiempoPresionadoDetalle;
-        contenedorImgDetalle.addEventListener('touchstart', () => {
-            tiempoPresionadoDetalle = setTimeout(() => {
-                abrirMenuOpciones();
-            }, 500);
-        }, { passive: true });
-        contenedorImgDetalle.addEventListener('touchend', () => clearTimeout(tiempoPresionadoDetalle));
-        contenedorImgDetalle.addEventListener('touchmove', () => clearTimeout(tiempoPresionadoDetalle));
-        contenedorImgDetalle.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            abrirMenuOpciones();
-        });
-
-        function cerrarCajasFlotantes() {
-            overlay.classList.remove('activo');
-            sheetOpciones.classList.remove('activo');
-        }
-
-        overlay.addEventListener('click', cerrarCajasFlotantes);
-
-        document.getElementById('btnCopiarEnlace').addEventListener('click', () => {
-            if(fotoActual) {
-                navigator.clipboard.writeText(fotoActual.url).then(() => {
-                    cerrarCajasFlotantes();
-                    mostrarToast("¡Enlace copiado al portapapeles!");
-                });
-            }
-        });
-
-        document.getElementById('btnDescargarDispositivo').addEventListener('click', () => {
+        document.getElementById('btnCopiarEnlace').onclick = () => {
             if(!fotoActual) return;
-            cerrarCajasFlotantes();
-            window.open(fotoActual.url, '_blank');
-        });
+            navigator.clipboard.writeText(fotoActual.url).then(() => {
+                mostrarToast("Enlace copiado al portapapeles");
+                overlay.click();
+            });
+        };
 
-        document.getElementById('navHome').addEventListener('click', () => {
-             conmutarMenuInferior('navHome'); modoFavoritos = false; document.getElementById('searchContainer').classList.remove('active'); actualizarDatosYRenderizar();
-        });
-        document.getElementById('navSearch').addEventListener('click', () => {
-            conmutarMenuInferior('navSearch'); modoFavoritos = false; document.getElementById('searchContainer').classList.add('active'); document.getElementById('inputBuscar').focus(); actualizarDatosYRenderizar();
-        });
-        document.getElementById('navFavs').addEventListener('click', () => {
-            conmutarMenuInferior('navFavs'); modoFavoritos = true; document.getElementById('searchContainer').classList.remove('active'); actualizarDatosYRenderizar();
-        });
+        // Copiar Imagen Real al Portapapeles
+        document.getElementById('btnCopiarImagenRaw').onclick = async () => {
+            if(!fotoActual) return;
+            mostrarToast("Procesando imagen...");
+            try {
+                const res = await fetch(fotoActual.url);
+                const blob = await res.blob();
+                await navigator.clipboard.write([new ClipboardItem({[blob.type]: blob})]);
+                mostrarToast("¡Imagen en alta calidad copiada!");
+                overlay.click();
+            } catch(e) {
+                mostrarToast("Error al copiar imagen");
+            }
+        };
 
-        function conmutarMenuInferior(id) {
+        // Descarga Nativa Forzada en Dispositivo
+        document.getElementById('btnDescargarDispositivo').onclick = async () => {
+            if(!fotoActual) return;
+            overlay.click();
+            mostrarToast("Iniciando descarga...");
+            try {
+                const res = await fetch(fotoActual.url);
+                const blob = await res.blob();
+                const enlaceTemporal = document.createElement('a');
+                enlaceTemporal.href = URL.createObjectURL(blob);
+                enlaceTemporal.download = `${fotoActual.titulo.replace(/\s+/g, '_')}.jpg`;
+                document.body.appendChild(enlaceTemporal);
+                enlaceTemporal.click();
+                document.body.removeChild(enlaceTemporal);
+            } catch (error) {
+                window.open(fotoActual.url, '_blank'); // Respaldo si falla
+            }
+        };
+
+        // Navegación
+        function cambiarPestaña(btnId, secId) {
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.seccion-app').forEach(s => s.classList.remove('activa'));
+            document.getElementById(btnId).classList.add('active');
+            document.getElementById(secId).classList.add('activa');
         }
+        document.getElementById('navHome').onclick = () => cambiarPestaña('navHome', 'seccionHome');
+        document.getElementById('navVideos').onclick = () => cambiarPestaña('navVideos', 'seccionVideos');
+        document.getElementById('navFavs').onclick = () => cambiarPestaña('navFavs', 'seccionFavs');
+        document.getElementById('navSolicitar').onclick = () => cambiarPestaña('navSolicitar', 'seccionSolicitar');
 
-        document.getElementById('inputBuscar').addEventListener('input', () => actualizarDatosYRenderizar());
-
-        function mostrarToast(msg) {
-            const t = document.getElementById('appToast');
-            t.textContent = msg; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
-        }
+        function mostrarToast(m) { const t = document.getElementById('appToast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
     </script>
 </body>
 </html>
+
