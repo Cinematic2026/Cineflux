@@ -601,6 +601,24 @@
     { id: "img_47", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/9b22b27a5eebe7a18c568264aeaaf9fd.gif" },
     
     { id: "img_48", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/3fc74c44617ca131b312fdfadf92467a.gif" },
+    
+    { id: "img_49", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/7f44c42086042650774481b33e268c2e.gif" },
+    
+    { id: "img_50", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/68a0e7cff40cd0e9dbfb80aeaa4ff1f6.gif" },
+    
+    { id: "img_51", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/3df243307a13845e8a1aab2d9d2dccca.gif" },
+    
+    { id: "img_52", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/fc990a617a5d4957b0e7f6cb5caa11ae.gif" },
+    
+    { id: "img_53", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/c34773169f4001f2650117fb83f89b80.gif" },
+    
+    { id: "img_54", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/7a8bea19f4e99f32e8b39bfb274ec7c8.gif" },
+    
+    { id: "img_55", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/50028a94828c234c2ff545344e05c033.gif" },
+    
+    { id: "img_56", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/8bdbfb6c444e6c62990db12cbd09471d.gif" },
+    
+    { id: "img_57", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/a6e10bc5455ca2b6d8bf7bf64360d521.gif" },
 ];
 
 const DATA_VIDEOS = [
@@ -627,290 +645,451 @@ const DATA_VIDEOS = [
     { id: "vid_10", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2Fdrive.google.com%2Ffile%2Fd%2F1O_eKhY6vYZvmj60_g1iBmevz2_UNq8d7%2Fview%3Fusp%3Ddrivesdk", duracion: "EXCLUSIVO" },
     
     { id: "vid_10", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.pornhub.com/embed/6a3256612f223", duracion: "EXCLUSIVO" },
+    { id: "vid_11", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/opkdlikc08e", duracion: "EXCLUSIVO" },
+    { id: "vid_12", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/oodmpmp9963", duracion: "EXCLUSIVO" },
+    { id: "vid_13", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/ooekibt3d2f", duracion: "EXCLUSIVO" },
+    { id: "vid_14", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/ucoludv1544", duracion: "EXCLUSIVO" },
+    { id: "vid_15", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/hfbebtdc720", duracion: "EXCLUSIVO" },
+    { id: "vid_16", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/uoeetlb7c8f", duracion: "EXCLUSIVO" },
+    { id: "vid_17", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/kcmvihk194f", duracion: "EXCLUSIVO" },
+    { id: "vid_18", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/ivkckuoa5af", duracion: "EXCLUSIVO" },
+    { id: "vid_19", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/ihvpbibf63b", duracion: "EXCLUSIVO" },
+    { id: "vid_20", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/ubdvvbh0c90", duracion: "EXCLUSIVO" },
 ];
 
         const FOTOS_ALEATORIAS = [...DATA_FOTOS].sort(() => Math.random() - 0.5);
-        const VIDEOS_ALEATORIOS = [...DATA_VIDEOS].sort(() => Math.random() - 0.5);
+const VIDEOS_ALEATORIOS = [...DATA_VIDEOS].sort(() => Math.random() - 0.5);
 
-        let db;
-        let listadoFavoritosLocal = [];
-        let listadoLikesLocal = [];
-        let fotoActual = null;
-        let configSandbox = { id: 'sandbox_prefs', scripts: true, sameOrigin: true, popups: false, forms: false, presentation: true };
+let db;
+let listadoFavoritosLocal = [];
+let listadoLikesLocal = [];
+let fotoActual = null;
+let configSandbox = { id: 'sandbox_prefs', scripts: true, sameOrigin: true, popups: false, forms: false, presentation: true };
 
-        const SVG_LIKE = `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`;
-        const SVG_FAV = `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>`;
+const SVG_LIKE = `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`;
+const SVG_FAV = `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>`;
+const SVG_PLAY = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
 
-        // === INICIALIZACIÓN ===
-        document.addEventListener("DOMContentLoaded", () => {
-            const passGuardada = localStorage.getItem("app_password");
-            const screen = document.getElementById("seguridadScreen");
-            const btn = document.getElementById("btnAccederSeguridad");
-            const input = document.getElementById("inputPass");
-
-            if (!passGuardada) {
-                document.getElementById("seguridadTitulo").textContent = "Crear Contraseña";
-                btn.textContent = "Guardar Clave";
-                btn.onclick = () => {
-                    const val = input.value.trim();
-                    if(!val) return mostrarToast("Ingresa algo válido");
-                    localStorage.setItem("app_password", val);
-                    screen.style.display = "none";
-                    mostrarAvisoInfo();
-                };
-            } else {
-                document.getElementById("seguridadTitulo").textContent = "Seguridad Activa";
-                btn.textContent = "Entrar";
-                btn.onclick = () => {
-                    if(input.value.trim() === passGuardada) { screen.style.display = "none"; mostrarAvisoInfo(); } 
-                    else { mostrarToast("❌ PIN Incorrecto"); input.value = ""; }
-                };
+// === OPTIMIZADOR DE RENDIMIENTO PARA VIDEOS ===
+const iframeObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const iframe = entry.target;
+            if (iframe.dataset.src) {
+                iframe.src = iframe.dataset.src;
+                iframe.removeAttribute('data-src');
             }
-            chequearLimiteSolicitudes();
-            vincularMenuSandbox();
-            renderizarListadoCanalesGrid(); // Renderiza la nueva pantalla de Canales
-        });
-
-        function mostrarAvisoInfo() {
-            const overlay = document.getElementById('infoModalOverlay');
-            overlay.classList.add('activo');
-            document.getElementById('btnEntendidoModal').onclick = () => { overlay.classList.remove('activo'); setTimeout(() => overlay.style.display = 'none', 300); }
+            observer.unobserve(iframe);
         }
+    });
+}, { rootMargin: '200px' }); // Carga el iframe 200px antes de que aparezca en pantalla
 
-        // === BASE DE DATOS LOCAL ===
-        const dbRequest = indexedDB.open('MiGaleriaLocalDB', 3);
-        dbRequest.onupgradeneeded = (e) => {
-            let database = e.target.result;
-            if (!database.objectStoreNames.contains('user_likes')) database.createObjectStore('user_likes', { keyPath: 'id' });
-            if (!database.objectStoreNames.contains('user_favorites')) database.createObjectStore('user_favorites', { keyPath: 'id' });
-            if (!database.objectStoreNames.contains('app_settings')) database.createObjectStore('app_settings', { keyPath: 'id' });
+// === INICIALIZACIÓN ===
+document.addEventListener("DOMContentLoaded", () => {
+    const passGuardada = localStorage.getItem("app_password");
+    const screen = document.getElementById("seguridadScreen");
+    const btn = document.getElementById("btnAccederSeguridad");
+    const input = document.getElementById("inputPass");
+
+    if (!passGuardada) {
+        document.getElementById("seguridadTitulo").textContent = "Crear Contraseña";
+        btn.textContent = "Guardar Clave";
+        btn.onclick = () => {
+            const val = input.value.trim();
+            if(!val) return mostrarToast("Ingresa algo válido");
+            localStorage.setItem("app_password", val);
+            screen.style.display = "none";
+            mostrarAvisoInfo();
         };
-        dbRequest.onsuccess = (e) => {
-            db = e.target.result;
-            db.transaction('app_settings').objectStore('app_settings').get('sandbox_prefs').onsuccess = (e_sb) => {
-                if(e_sb.target.result) configSandbox = e_sb.target.result; 
-                aplicarCheckboxSandboxUI();
-                actualizarDatosYRenderizar();
-            };
+    } else {
+        document.getElementById("seguridadTitulo").textContent = "Seguridad Activa";
+        btn.textContent = "Entrar";
+        btn.onclick = () => {
+            if(input.value.trim() === passGuardada) { screen.style.display = "none"; mostrarAvisoInfo(); } 
+            else { mostrarToast("❌ PIN Incorrecto"); input.value = ""; }
         };
+    }
+    chequearLimiteSolicitudes();
+    vincularMenuSandbox();
+    renderizarListadoCanalesGrid(); 
+});
 
-        function guardarDato(almacen, id, activo) {
-            if (!db) return;
-            let tx = db.transaction(almacen, 'readwrite');
-            let store = tx.objectStore(almacen);
-            if (activo) store.put({ id: id }); else store.delete(id);
-            tx.oncomplete = () => { db.transaction('user_favorites', 'readonly').objectStore('user_favorites').getAll().onsuccess = (ev) => { listadoFavoritosLocal = ev.target.result.map(item => item.id); renderizarGridFavoritos(); }; };
+function mostrarAvisoInfo() {
+    const overlay = document.getElementById('infoModalOverlay');
+    overlay.classList.add('activo');
+    document.getElementById('btnEntendidoModal').onclick = () => { overlay.classList.remove('activo'); setTimeout(() => overlay.style.display = 'none', 300); }
+}
+
+// === BASE DE DATOS LOCAL ===
+const dbRequest = indexedDB.open('MiGaleriaLocalDB', 3);
+dbRequest.onupgradeneeded = (e) => {
+    let database = e.target.result;
+    if (!database.objectStoreNames.contains('user_likes')) database.createObjectStore('user_likes', { keyPath: 'id' });
+    if (!database.objectStoreNames.contains('user_favorites')) database.createObjectStore('user_favorites', { keyPath: 'id' });
+    if (!database.objectStoreNames.contains('app_settings')) database.createObjectStore('app_settings', { keyPath: 'id' });
+};
+dbRequest.onsuccess = (e) => {
+    db = e.target.result;
+    db.transaction('app_settings').objectStore('app_settings').get('sandbox_prefs').onsuccess = (e_sb) => {
+        if(e_sb.target.result) configSandbox = e_sb.target.result; 
+        aplicarCheckboxSandboxUI();
+        actualizarDatosYRenderizar();
+    };
+};
+
+function guardarDato(almacen, id, activo) {
+    if (!db) return;
+    let tx = db.transaction(almacen, 'readwrite');
+    let store = tx.objectStore(almacen);
+    if (activo) store.put({ id: id }); else store.delete(id);
+    
+    // Actualización silenciosa para favoritos
+    tx.oncomplete = () => { 
+        if(almacen === 'user_favorites') {
+            db.transaction('user_favorites', 'readonly').objectStore('user_favorites').getAll().onsuccess = (ev) => { 
+                listadoFavoritosLocal = ev.target.result.map(item => item.id); 
+                renderizarGridFavoritos(); // Solo reconstruye la vista de favoritos
+            }; 
         }
+    };
+}
 
-        function actualizarDatosYRenderizar() {
-            if (!db) return;
-            db.transaction('user_favorites', 'readonly').objectStore('user_favorites').getAll().onsuccess = (e) => {
-                listadoFavoritosLocal = e.target.result.map(item => item.id);
-                db.transaction('user_likes', 'readonly').objectStore('user_likes').getAll().onsuccess = (e2) => {
-                    listadoLikesLocal = e2.target.result.map(item => item.id);
-                    renderizarGridFotos(); renderizarGridVideos(); renderizarGridFavoritos();
-                };
-            };
-        }
+// === SOLUCIÓN BUG LIKES / FAVS (SINCRONIZACIÓN EN TIEMPO REAL) ===
+function alternarInteraccion(tipo, id, elementoBoton) {
+    elementoBoton.classList.toggle(tipo === 'like' ? 'active' : 'fav-active');
+    const estaActivo = elementoBoton.classList.contains(tipo === 'like' ? 'active' : 'fav-active');
+    
+    // Actualizar array en memoria
+    if (tipo === 'like') {
+        if (estaActivo) listadoLikesLocal.push(id); else listadoLikesLocal = listadoLikesLocal.filter(x => x !== id);
+        guardarDato('user_likes', id, estaActivo);
+    } else {
+        if (estaActivo) listadoFavoritosLocal.push(id); else listadoFavoritosLocal = listadoFavoritosLocal.filter(x => x !== id);
+        guardarDato('user_favorites', id, estaActivo);
+    }
 
-        // === CONSTRUCCIÓN ELEMENTOS MULTIMEDIA ===
-        function crearTarjetaFoto(foto, gridDestino) {
-            const esLike = listadoLikesLocal.includes(foto.id);
-            const esFav = listadoFavoritosLocal.includes(foto.id);
-            const canal = CANALES[foto.canalId];
-            const card = document.createElement('div');
-            card.className = 'pin-card skeleton';
-            card.innerHTML = `<img src="${foto.url}"><div class="pin-overlay"><div class="pin-info-row"><span class="pin-title" title="${canal.nombre}">${foto.titulo}</span><div class="pin-actions"><button class="btn-glass btn-like ${esLike ? 'active' : ''}">${SVG_LIKE}</button><button class="btn-glass btn-fav ${esFav ? 'fav-active' : ''}">${SVG_FAV}</button></div></div></div>`;
-            const img = card.querySelector('img');
-            img.onload = () => { card.classList.remove('skeleton'); img.classList.add('loaded'); };
-            card.onclick = (e) => { if (e.target.closest('.pin-title')) { e.stopPropagation(); abrirPerfilCanal(foto.canalId); return; } if (!e.target.closest('.btn-glass')) abrirVistaDetalle(foto); };
-            card.querySelector('.btn-like').onclick = (e) => { e.stopPropagation(); e.currentTarget.classList.toggle('active'); guardarDato('user_likes', foto.id, e.currentTarget.classList.contains('active')); };
-            card.querySelector('.btn-fav').onclick = (e) => { e.stopPropagation(); e.currentTarget.classList.toggle('fav-active'); guardarDato('user_favorites', foto.id, e.currentTarget.classList.contains('fav-active')); };
-            gridDestino.appendChild(card);
-        }
+    // Sincronizar todos los botones idénticos en el DOM (Grid + Modal)
+    document.querySelectorAll(`.btn-${tipo}[data-target-id="${id}"]`).forEach(btn => {
+        if (estaActivo) btn.classList.add(tipo === 'like' ? 'active' : 'fav-active');
+        else btn.classList.remove(tipo === 'like' ? 'active' : 'fav-active');
+    });
+}
 
-        function renderizarGridFotos() { document.getElementById('galeriaGrid').innerHTML = ''; FOTOS_ALEATORIAS.forEach(foto => crearTarjetaFoto(foto, document.getElementById('galeriaGrid'))); }
-
-        function crearTarjetaVideo(vid, gridDestino) {
-            const esFav = listadoFavoritosLocal.includes(vid.id);
-            const canal = CANALES[vid.canalId];
-            const card = document.createElement('div');
-            card.className = 'video-card-yt';
-            card.innerHTML = `<div class="vid-thumb-container"><div class="vid-blocker-top"></div><div class="vid-blocker-bottom"></div><iframe src="${vid.url}?autoplay=0&controls=0" loading="lazy"></iframe><div class="vid-click-overlay"></div><span class="badge-duration">${vid.duracion}</span><div class="btn-play-center"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div><div class="vid-info-container"><div class="vid-avatar"><img src="${canal.logo}"></div><div class="vid-text-block"><div class="vid-title">${vid.titulo}</div><div class="vid-channel">${canal.nombre}</div></div><div class="vid-actions-block"><button class="btn-glass btn-fav ${esFav ? 'fav-active' : ''}">${SVG_FAV}</button></div></div>`;
-            card.querySelector('.vid-click-overlay').onclick = () => ejecutarVideoFullscreen(vid.url);
-            card.querySelector('.vid-avatar').onclick = (e) => { e.stopPropagation(); abrirPerfilCanal(vid.canalId); };
-            card.querySelector('.vid-channel').onclick = (e) => { e.stopPropagation(); abrirPerfilCanal(vid.canalId); };
-            card.querySelector('.btn-fav').onclick = (e) => { e.stopPropagation(); e.currentTarget.classList.toggle('fav-active'); guardarDato('user_favorites', vid.id, e.currentTarget.classList.contains('fav-active')); };
-            gridDestino.appendChild(card);
-        }
-
-        function renderizarGridVideos() { document.getElementById('videosGrid').innerHTML = ''; VIDEOS_ALEATORIOS.forEach(vid => crearTarjetaVideo(vid, document.getElementById('videosGrid'))); }
-
-        // === LISTA DE CANALES Y PERFIL ===
-        function renderizarListadoCanalesGrid() {
-            const grid = document.getElementById('canalesListadoGrid');
-            grid.innerHTML = '';
-            for (const [id, canal] of Object.entries(CANALES)) {
-                const card = document.createElement('div');
-                card.className = 'canal-card-explore';
-                card.innerHTML = `
-                    <img class="canal-card-bg" src="${canal.banner}" alt="">
-                    <div class="canal-card-overlay">
-                        <img class="canal-explore-logo" src="${canal.logo}" alt="">
-                        <div class="canal-explore-info">
-                            <div class="canal-explore-titulo">${canal.nombre}</div>
-                            <div class="canal-explore-desc">${canal.desc}</div>
-                        </div>
-                    </div>
-                `;
-                card.onclick = () => abrirPerfilCanal(id);
-                grid.appendChild(card);
-            }
-        }
-
-        function abrirPerfilCanal(canalId) {
-            const canal = CANALES[canalId];
-            if(!canal) return;
-            document.querySelectorAll('.seccion-app').forEach(s => s.classList.remove('activa'));
-            document.getElementById('mainHeader').style.display = 'none';
-            document.getElementById('seccionCanal').classList.add('activa');
-            if(document.getElementById('vistaDetalle').classList.contains('activa')) { document.getElementById('btnCerrarDetalle').click(); }
-
-            document.getElementById('canalBannerSrc').src = canal.banner;
-            document.getElementById('canalLogoSrc').src = canal.logo;
-            document.getElementById('canalNombreTxt').textContent = canal.nombre;
-            document.getElementById('canalStatsTxt').textContent = canal.desc;
-
-            const canalFotos = DATA_FOTOS.filter(f => f.canalId === canalId);
-            const canalVideos = DATA_VIDEOS.filter(v => v.canalId === canalId);
-
-            const gridF = document.getElementById('canalFotosGrid');
-            const gridV = document.getElementById('canalVideosGrid');
-            gridF.innerHTML = ''; gridV.innerHTML = '';
-
-            canalFotos.forEach(f => crearTarjetaFoto(f, gridF));
-            canalVideos.forEach(v => crearTarjetaVideo(v, gridV));
-
-            activarTabCanal('tabCanalFotos', 'canalFotosGrid', canalFotos.length);
-        }
-
-        document.getElementById('btnVolverCanal').onclick = () => {
-            document.getElementById('seccionCanal').classList.remove('activa');
-            document.getElementById('mainHeader').style.display = 'flex';
-            const activeNav = document.querySelector('.nav-item.active').id.replace('nav', 'seccion');
-            document.getElementById(activeNav).classList.add('activa');
+function actualizarDatosYRenderizar() {
+    if (!db) return;
+    db.transaction('user_favorites', 'readonly').objectStore('user_favorites').getAll().onsuccess = (e) => {
+        listadoFavoritosLocal = e.target.result.map(item => item.id);
+        db.transaction('user_likes', 'readonly').objectStore('user_likes').getAll().onsuccess = (e2) => {
+            listadoLikesLocal = e2.target.result.map(item => item.id);
+            renderizarGridFotos(); 
+            renderizarGridVideos(); 
+            renderizarGridFavoritos();
         };
+    };
+}
 
-        function activarTabCanal(tabId, gridId, cantidadItems) {
-            document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.canal-grid-container').forEach(c => c.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            if(cantidadItems === 0) { document.getElementById('canalVacioMsj').style.display = 'block'; document.getElementById(gridId).classList.remove('active'); } 
-            else { document.getElementById('canalVacioMsj').style.display = 'none'; document.getElementById(gridId).classList.add('active'); }
-        }
+// === CONSTRUCCIÓN ELEMENTOS MULTIMEDIA (Alta Velocidad con DocumentFragment) ===
+function crearTarjetaFoto(foto, contenedorDestino) {
+    const esLike = listadoLikesLocal.includes(foto.id);
+    const esFav = listadoFavoritosLocal.includes(foto.id);
+    const canal = CANALES[foto.canalId];
+    
+    const card = document.createElement('div');
+    card.className = 'pin-card skeleton';
+    card.innerHTML = `
+        <img src="${foto.url}">
+        <div class="pin-overlay">
+            <div class="pin-info-row">
+                <span class="pin-title" title="${canal.nombre}">${foto.titulo}</span>
+                <div class="pin-actions">
+                    <button class="btn-glass btn-like ${esLike ? 'active' : ''}" data-target-id="${foto.id}">${SVG_LIKE}</button>
+                    <button class="btn-glass btn-fav ${esFav ? 'fav-active' : ''}" data-target-id="${foto.id}">${SVG_FAV}</button>
+                </div>
+            </div>
+        </div>`;
+        
+    const img = card.querySelector('img');
+    img.onload = () => { card.classList.remove('skeleton'); img.classList.add('loaded'); };
+    
+    card.onclick = (e) => { 
+        if (e.target.closest('.pin-title')) { e.stopPropagation(); abrirPerfilCanal(foto.canalId); return; } 
+        if (!e.target.closest('.btn-glass')) abrirVistaDetalle(foto); 
+    };
+    
+    card.querySelector('.btn-like').onclick = (e) => { e.stopPropagation(); alternarInteraccion('like', foto.id, e.currentTarget); };
+    card.querySelector('.btn-fav').onclick = (e) => { e.stopPropagation(); alternarInteraccion('fav', foto.id, e.currentTarget); };
+    
+    contenedorDestino.appendChild(card);
+}
 
-        document.getElementById('tabCanalFotos').onclick = () => { const qty = document.getElementById('canalFotosGrid').childElementCount; activarTabCanal('tabCanalFotos', 'canalFotosGrid', qty); };
-        document.getElementById('tabCanalVideos').onclick = () => { const qty = document.getElementById('canalVideosGrid').childElementCount; activarTabCanal('tabCanalVideos', 'canalVideosGrid', qty); };
+function renderizarGridFotos() { 
+    const grid = document.getElementById('galeriaGrid');
+    grid.innerHTML = ''; 
+    const fragment = document.createDocumentFragment();
+    FOTOS_ALEATORIAS.forEach(foto => crearTarjetaFoto(foto, fragment));
+    grid.appendChild(fragment);
+}
 
-        // === SANDBOX Y REPRODUCTOR ===
-        function obtenerStringSandbox() {
-            let s = [];
-            if(configSandbox.scripts) s.push('allow-scripts');
-            if(configSandbox.sameOrigin) s.push('allow-same-origin');
-            if(configSandbox.popups) s.push('allow-popups');
-            if(configSandbox.forms) s.push('allow-forms');
-            if(configSandbox.presentation) s.push('allow-presentation');
-            return s.join(' ');
-        }
-        function aplicarCheckboxSandboxUI() { document.getElementById('chkScripts').checked = configSandbox.scripts; document.getElementById('chkSameOrigin').checked = configSandbox.sameOrigin; document.getElementById('chkPopups').checked = configSandbox.popups; document.getElementById('chkForms').checked = configSandbox.forms; document.getElementById('chkPresentation').checked = configSandbox.presentation; }
-        function vincularMenuSandbox() {
-            document.getElementById('btnSandboxMenu').onclick = () => document.getElementById('sandboxPanel').classList.toggle('active');
-            ['chkScripts', 'chkSameOrigin', 'chkPopups', 'chkForms', 'chkPresentation'].forEach(id => {
-                document.getElementById(id).onchange = (e) => {
-                    const key = id.replace('chk', ''); const kLower = key.charAt(0).toLowerCase() + key.slice(1);
-                    configSandbox[kLower] = e.target.checked;
-                    if(db) { let tx = db.transaction('app_settings', 'readwrite'); tx.objectStore('app_settings').put(configSandbox); }
-                    mostrarToast("Sandbox actualizado.");
-                };
-            });
-        }
-        function ejecutarVideoFullscreen(urlLimpia) {
-            const contenedor = document.getElementById('videoFullscreenContainer'); const iframe = document.getElementById('fullscreenIframe');
-            document.getElementById('bottomNav').style.display = "none"; contenedor.style.display = "block";
-            iframe.sandbox = obtenerStringSandbox(); const union = urlLimpia.includes('?') ? '&' : '?'; iframe.src = `${urlLimpia}${union}autoplay=1&controls=1`;
-            if (contenedor.requestFullscreen) contenedor.requestFullscreen(); else if (contenedor.webkitRequestFullscreen) contenedor.webkitRequestFullscreen();
-        }
-        document.getElementById('btnCloseFs').onclick = () => {
-            if(document.fullscreenElement) document.exitFullscreen(); else if(document.webkitFullscreenElement) document.webkitExitFullscreen();
-            document.getElementById('fullscreenIframe').src = ""; document.getElementById('videoFullscreenContainer').style.display = "none"; document.getElementById('bottomNav').style.display = "flex";
+function crearTarjetaVideo(vid, contenedorDestino) {
+    const esFav = listadoFavoritosLocal.includes(vid.id);
+    const canal = CANALES[vid.canalId];
+    
+    const card = document.createElement('div');
+    card.className = 'video-card-yt';
+    
+    // Se utiliza data-src en el iframe para que el IntersectionObserver lo cargue sin lag
+    card.innerHTML = `
+        <div class="vid-thumb-container">
+            <div class="vid-blocker-top"></div>
+            <div class="vid-blocker-bottom"></div>
+            <iframe data-src="${vid.url}?autoplay=0&controls=0" loading="lazy"></iframe>
+            <div class="vid-click-overlay"></div>
+            <span class="badge-duration">${vid.duracion}</span>
+            <div class="btn-play-center">${SVG_PLAY}</div>
+        </div>
+        <div class="vid-info-container">
+            <div class="vid-avatar"><img src="${canal.logo}"></div>
+            <div class="vid-text-block">
+                <div class="vid-title">${vid.titulo}</div>
+                <div class="vid-channel">${canal.nombre}</div>
+            </div>
+            <div class="vid-actions-block">
+                <button class="btn-glass btn-fav ${esFav ? 'fav-active' : ''}" data-target-id="${vid.id}">${SVG_FAV}</button>
+            </div>
+        </div>`;
+        
+    // Observar el iframe para cargarlo de forma diferida
+    iframeObserver.observe(card.querySelector('iframe'));
+        
+    card.querySelector('.vid-click-overlay').onclick = () => ejecutarVideoFullscreen(vid.url);
+    card.querySelector('.vid-avatar').onclick = (e) => { e.stopPropagation(); abrirPerfilCanal(vid.canalId); };
+    card.querySelector('.vid-channel').onclick = (e) => { e.stopPropagation(); abrirPerfilCanal(vid.canalId); };
+    card.querySelector('.btn-fav').onclick = (e) => { e.stopPropagation(); alternarInteraccion('fav', vid.id, e.currentTarget); };
+    
+    contenedorDestino.appendChild(card);
+}
+
+function renderizarGridVideos() { 
+    const grid = document.getElementById('videosGrid');
+    grid.innerHTML = ''; 
+    const fragment = document.createDocumentFragment();
+    VIDEOS_ALEATORIOS.forEach(vid => crearTarjetaVideo(vid, fragment));
+    grid.appendChild(fragment);
+}
+
+// === LISTA DE CANALES Y PERFIL ===
+function renderizarListadoCanalesGrid() {
+    const grid = document.getElementById('canalesListadoGrid');
+    grid.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+    for (const [id, canal] of Object.entries(CANALES)) {
+        const card = document.createElement('div');
+        card.className = 'canal-card-explore';
+        card.innerHTML = `
+            <img class="canal-card-bg" src="${canal.banner}" alt="">
+            <div class="canal-card-overlay">
+                <img class="canal-explore-logo" src="${canal.logo}" alt="">
+                <div class="canal-explore-info">
+                    <div class="canal-explore-titulo">${canal.nombre}</div>
+                    <div class="canal-explore-desc">${canal.desc}</div>
+                </div>
+            </div>
+        `;
+        card.onclick = () => abrirPerfilCanal(id);
+        fragment.appendChild(card);
+    }
+    grid.appendChild(fragment);
+}
+
+function abrirPerfilCanal(canalId) {
+    const canal = CANALES[canalId];
+    if(!canal) return;
+    document.querySelectorAll('.seccion-app').forEach(s => s.classList.remove('activa'));
+    document.getElementById('mainHeader').style.display = 'none';
+    document.getElementById('seccionCanal').classList.add('activa');
+    if(document.getElementById('vistaDetalle').classList.contains('activa')) { document.getElementById('btnCerrarDetalle').click(); }
+
+    document.getElementById('canalBannerSrc').src = canal.banner;
+    document.getElementById('canalLogoSrc').src = canal.logo;
+    document.getElementById('canalNombreTxt').textContent = canal.nombre;
+    document.getElementById('canalStatsTxt').textContent = canal.desc;
+
+    const canalFotos = DATA_FOTOS.filter(f => f.canalId === canalId);
+    const canalVideos = DATA_VIDEOS.filter(v => v.canalId === canalId);
+
+    const gridF = document.getElementById('canalFotosGrid');
+    const gridV = document.getElementById('canalVideosGrid');
+    gridF.innerHTML = ''; gridV.innerHTML = '';
+
+    const fragmentF = document.createDocumentFragment();
+    const fragmentV = document.createDocumentFragment();
+    
+    canalFotos.forEach(f => crearTarjetaFoto(f, fragmentF));
+    canalVideos.forEach(v => crearTarjetaVideo(v, fragmentV));
+    
+    gridF.appendChild(fragmentF);
+    gridV.appendChild(fragmentV);
+
+    activarTabCanal('tabCanalFotos', 'canalFotosGrid', canalFotos.length);
+}
+
+document.getElementById('btnVolverCanal').onclick = () => {
+    document.getElementById('seccionCanal').classList.remove('activa');
+    document.getElementById('mainHeader').style.display = 'flex';
+    const activeNav = document.querySelector('.nav-item.active').id.replace('nav', 'seccion');
+    document.getElementById(activeNav).classList.add('activa');
+};
+
+function activarTabCanal(tabId, gridId, cantidadItems) {
+    document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.canal-grid-container').forEach(c => c.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    if(cantidadItems === 0) { document.getElementById('canalVacioMsj').style.display = 'block'; document.getElementById(gridId).classList.remove('active'); } 
+    else { document.getElementById('canalVacioMsj').style.display = 'none'; document.getElementById(gridId).classList.add('active'); }
+}
+
+document.getElementById('tabCanalFotos').onclick = () => { const qty = document.getElementById('canalFotosGrid').childElementCount; activarTabCanal('tabCanalFotos', 'canalFotosGrid', qty); };
+document.getElementById('tabCanalVideos').onclick = () => { const qty = document.getElementById('canalVideosGrid').childElementCount; activarTabCanal('tabCanalVideos', 'canalVideosGrid', qty); };
+
+// === SANDBOX Y REPRODUCTOR ===
+function obtenerStringSandbox() {
+    let s = [];
+    if(configSandbox.scripts) s.push('allow-scripts');
+    if(configSandbox.sameOrigin) s.push('allow-same-origin');
+    if(configSandbox.popups) s.push('allow-popups');
+    if(configSandbox.forms) s.push('allow-forms');
+    if(configSandbox.presentation) s.push('allow-presentation');
+    return s.join(' ');
+}
+function aplicarCheckboxSandboxUI() { document.getElementById('chkScripts').checked = configSandbox.scripts; document.getElementById('chkSameOrigin').checked = configSandbox.sameOrigin; document.getElementById('chkPopups').checked = configSandbox.popups; document.getElementById('chkForms').checked = configSandbox.forms; document.getElementById('chkPresentation').checked = configSandbox.presentation; }
+function vincularMenuSandbox() {
+    document.getElementById('btnSandboxMenu').onclick = () => document.getElementById('sandboxPanel').classList.toggle('active');
+    ['chkScripts', 'chkSameOrigin', 'chkPopups', 'chkForms', 'chkPresentation'].forEach(id => {
+        document.getElementById(id).onchange = (e) => {
+            const key = id.replace('chk', ''); const kLower = key.charAt(0).toLowerCase() + key.slice(1);
+            configSandbox[kLower] = e.target.checked;
+            if(db) { let tx = db.transaction('app_settings', 'readwrite'); tx.objectStore('app_settings').put(configSandbox); }
+            mostrarToast("Sandbox actualizado.");
         };
+    });
+}
+function ejecutarVideoFullscreen(urlLimpia) {
+    const contenedor = document.getElementById('videoFullscreenContainer'); const iframe = document.getElementById('fullscreenIframe');
+    document.getElementById('bottomNav').style.display = "none"; contenedor.style.display = "block";
+    iframe.sandbox = obtenerStringSandbox(); const union = urlLimpia.includes('?') ? '&' : '?'; iframe.src = `${urlLimpia}${union}autoplay=1&controls=1`;
+    if (contenedor.requestFullscreen) contenedor.requestFullscreen(); else if (contenedor.webkitRequestFullscreen) contenedor.webkitRequestFullscreen();
+}
+document.getElementById('btnCloseFs').onclick = () => {
+    if(document.fullscreenElement) document.exitFullscreen(); else if(document.webkitFullscreenElement) document.webkitExitFullscreen();
+    document.getElementById('fullscreenIframe').src = ""; document.getElementById('videoFullscreenContainer').style.display = "none"; document.getElementById('bottomNav').style.display = "flex";
+};
 
-        // === COMUNICACIONES TELEGRAM / MAIL ===
-        function getFechaHoy() { return new Date().toISOString().split('T')[0]; }
-        function chequearLimiteSolicitudes() {
-            const registros = JSON.parse(localStorage.getItem("solicitudes_logs") || "{}");
-            if(registros[getFechaHoy()] >= 2) { document.getElementById('btnEnviarForm').disabled = true; document.getElementById('alertaLimite').style.display = "block"; return false; }
-            return true;
-        }
-        document.getElementById('formSolicitud').onsubmit = function(e) {
-            e.preventDefault(); if(!chequearLimiteSolicitudes()) return;
-            const correoAdmin = "xplaymovies2024@gmail.com"; 
-            const n = document.getElementById('solNombre').value, t = document.getElementById('solTipo').value, d = document.getElementById('solDetalle').value;
-            window.location.href = `mailto:${correoAdmin}?subject=${encodeURIComponent(`Pedido: ${t}`)}&body=${encodeURIComponent(`Alias: ${n}\nTipo: ${t}\nDetalles: ${d}`)}`;
-            const reg = JSON.parse(localStorage.getItem("solicitudes_logs") || "{}"); reg[getFechaHoy()] = (reg[getFechaHoy()] || 0) + 1; localStorage.setItem("solicitudes_logs", JSON.stringify(reg));
-            document.getElementById('formSolicitud').reset(); chequearLimiteSolicitudes();
-        };
+// === COMUNICACIONES TELEGRAM / MAIL ===
+function getFechaHoy() { return new Date().toISOString().split('T')[0]; }
+function chequearLimiteSolicitudes() {
+    const registros = JSON.parse(localStorage.getItem("solicitudes_logs") || "{}");
+    if(registros[getFechaHoy()] >= 2) { document.getElementById('btnEnviarForm').disabled = true; document.getElementById('alertaLimite').style.display = "block"; return false; }
+    return true;
+}
+document.getElementById('formSolicitud').onsubmit = function(e) {
+    e.preventDefault(); if(!chequearLimiteSolicitudes()) return;
+    const correoAdmin = "xplaymovies2024@gmail.com"; 
+    const n = document.getElementById('solNombre').value, t = document.getElementById('solTipo').value, d = document.getElementById('solDetalle').value;
+    window.location.href = `mailto:${correoAdmin}?subject=${encodeURIComponent(`Pedido: ${t}`)}&body=${encodeURIComponent(`Alias: ${n}\nTipo: ${t}\nDetalles: ${d}`)}`;
+    const reg = JSON.parse(localStorage.getItem("solicitudes_logs") || "{}"); reg[getFechaHoy()] = (reg[getFechaHoy()] || 0) + 1; localStorage.setItem("solicitudes_logs", JSON.stringify(reg));
+    document.getElementById('formSolicitud').reset(); chequearLimiteSolicitudes();
+};
 
-        const usuarioTelegram = "TuUsuarioTelegram"; // <-- Reemplaza con tu alias
-        document.getElementById('btnSolicitarCanal').onclick = () => { window.open(`https://t.me/${usuarioTelegram}?text=${encodeURIComponent("Hola! Vengo de Mi Galería Pro. Me gustaría solicitar permisos para crear y gestionar mi propio Canal de contenido.")}`, '_blank'); };
-        document.getElementById('btnApoyoDev').onclick = () => { window.open(`https://t.me/${usuarioTelegram}?text=${encodeURIComponent("Hola Dev! Excelente trabajo con Mi Galería Pro. Vengo desde la pestaña de Apoyo.")}`, '_blank'); };
+const usuarioTelegram = "TuUsuarioTelegram"; // <-- Reemplaza con tu alias
+document.getElementById('btnSolicitarCanal').onclick = () => { window.open(`https://t.me/${usuarioTelegram}?text=${encodeURIComponent("Hola! Vengo de Mi Galería Pro. Me gustaría solicitar permisos para crear y gestionar mi propio Canal de contenido.")}`, '_blank'); };
+document.getElementById('btnApoyoDev').onclick = () => { window.open(`https://t.me/${usuarioTelegram}?text=${encodeURIComponent("Hola Dev! Excelente trabajo con Mi Galería Pro. Vengo desde la pestaña de Apoyo.")}`, '_blank'); };
 
-        // === FAVORITOS ===
-        function renderizarGridFavoritos() {
-            const fGrid = document.getElementById('favsFotosGrid'), vGrid = document.getElementById('favsVideosGrid');
-            const tFotos = document.getElementById('txtFavsFotos'), tVideos = document.getElementById('txtFavsVideos'), vVacio = document.getElementById('favsVacio');
-            fGrid.innerHTML = ''; vGrid.innerHTML = '';
-            const fFav = DATA_FOTOS.filter(f => listadoFavoritosLocal.includes(f.id)), vFav = DATA_VIDEOS.filter(v => listadoFavoritosLocal.includes(v.id));
-            if(fFav.length === 0 && vFav.length === 0) { tFotos.style.display = "none"; tVideos.style.display = "none"; vVacio.style.display = "block"; return; } else { vVacio.style.display = "none"; }
-            if(fFav.length > 0) { tFotos.style.display = "block"; fFav.forEach(foto => crearTarjetaFoto(foto, fGrid)); } else { tFotos.style.display = "none"; }
-            if(vFav.length > 0) { tVideos.style.display = "block"; vFav.forEach(vid => crearTarjetaVideo(vid, vGrid)); } else { tVideos.style.display = "none"; }
-        }
+// === FAVORITOS ===
+function renderizarGridFavoritos() {
+    const fGrid = document.getElementById('favsFotosGrid'), vGrid = document.getElementById('favsVideosGrid');
+    const tFotos = document.getElementById('txtFavsFotos'), tVideos = document.getElementById('txtFavsVideos'), vVacio = document.getElementById('favsVacio');
+    fGrid.innerHTML = ''; vGrid.innerHTML = '';
+    const fFav = DATA_FOTOS.filter(f => listadoFavoritosLocal.includes(f.id)), vFav = DATA_VIDEOS.filter(v => listadoFavoritosLocal.includes(v.id));
+    
+    if(fFav.length === 0 && vFav.length === 0) { tFotos.style.display = "none"; tVideos.style.display = "none"; vVacio.style.display = "block"; return; } else { vVacio.style.display = "none"; }
+    
+    if(fFav.length > 0) { 
+        tFotos.style.display = "block"; 
+        const fragmentF = document.createDocumentFragment();
+        fFav.forEach(foto => crearTarjetaFoto(foto, fragmentF)); 
+        fGrid.appendChild(fragmentF);
+    } else { tFotos.style.display = "none"; }
+    
+    if(vFav.length > 0) { 
+        tVideos.style.display = "block"; 
+        const fragmentV = document.createDocumentFragment();
+        vFav.forEach(vid => crearTarjetaVideo(vid, fragmentV)); 
+        vGrid.appendChild(fragmentV);
+    } else { tVideos.style.display = "none"; }
+}
 
-        // === VISTA DETALLE Y OPCIONES EXTRAS ===
-        function abrirVistaDetalle(foto) {
-            fotoActual = foto; const canal = CANALES[foto.canalId];
-            document.getElementById('imgDetalleSrc').src = foto.url; document.getElementById('pinTituloReal').textContent = foto.titulo; document.getElementById('pinNombreCanal').textContent = canal.nombre; document.getElementById('autorAvatarImg').src = canal.logo;
-            document.getElementById('btnIrAlCanalDetalle').onclick = () => abrirPerfilCanal(foto.canalId);
-            document.getElementById('bottomNav').style.display = 'none';
-            document.getElementById('galeriaExplorar').innerHTML = ''; DATA_FOTOS.filter(f => f.id !== fotoActual.id).sort(() => Math.random() - 0.5).slice(0, 6).forEach(f => crearTarjetaFoto(f, document.getElementById('galeriaExplorar')));
-            document.getElementById('vistaDetalle').classList.add('activa');
-        }
-        document.getElementById('btnCerrarDetalle').onclick = () => { document.getElementById('vistaDetalle').classList.remove('activa'); document.getElementById('bottomNav').style.display = 'flex'; };
-        document.getElementById('btnCompartirPin').onclick = async () => { if(!fotoActual) return; if (navigator.share) { try { await navigator.share({ title: fotoActual.titulo, text: "Mira esto!", url: fotoActual.url }); mostrarToast("¡Compartido!"); } catch(e) {} } else { navigator.clipboard.writeText(fotoActual.url); mostrarToast("Enlace copiado"); } };
+// === VISTA DETALLE Y OPCIONES EXTRAS ===
+function abrirVistaDetalle(foto) {
+    fotoActual = foto; const canal = CANALES[foto.canalId];
+    document.getElementById('imgDetalleSrc').src = foto.url; document.getElementById('pinTituloReal').textContent = foto.titulo; document.getElementById('pinNombreCanal').textContent = canal.nombre; document.getElementById('autorAvatarImg').src = canal.logo;
+    document.getElementById('btnIrAlCanalDetalle').onclick = () => abrirPerfilCanal(foto.canalId);
+    document.getElementById('bottomNav').style.display = 'none';
+    
+    const esLike = listadoLikesLocal.includes(foto.id);
+    const esFav = listadoFavoritosLocal.includes(foto.id);
 
-        const overlay = document.getElementById('sheetOverlay'), sheet = document.getElementById('bottomSheetOpciones');
-        document.getElementById('btnMenuOpciones').onclick = () => { overlay.classList.add('activo'); sheet.classList.add('activo'); };
-        overlay.onclick = () => { overlay.classList.remove('activo'); sheet.classList.remove('activo'); };
-        document.getElementById('btnCopiarEnlace').onclick = () => { if(!fotoActual) return; navigator.clipboard.writeText(fotoActual.url).then(() => { mostrarToast("Enlace copiado"); overlay.click(); }); };
-        document.getElementById('btnPantallaCompleta').onclick = () => { if(!fotoActual) return; const img = document.getElementById('imgDetalleSrc'); if (img.requestFullscreen) { img.requestFullscreen(); } else if (img.webkitRequestFullscreen) { img.webkitRequestFullscreen(); } overlay.click(); };
+    // Reasignamos los botones de acciones del modal inyectando el ID para que la función alternarInteraccion lo detecte
+    const actionsContenedor = document.getElementById('vistaDetalle').querySelector('.pin-actions') || document.getElementById('vistaDetalle'); // Ajusta el selector si tienes un contenedor específico en tu HTML
+    
+    // Si los botones están sueltos en el modal, les pasamos el nuevo data-target-id
+    const btnLikeDetalle = document.getElementById('btnLikeDetalleModal'); 
+    const btnFavDetalle = document.getElementById('btnFavDetalleModal');
+    
+    if(btnLikeDetalle) {
+        btnLikeDetalle.className = `btn-glass btn-like ${esLike ? 'active' : ''}`;
+        btnLikeDetalle.setAttribute('data-target-id', foto.id);
+        btnLikeDetalle.onclick = (e) => alternarInteraccion('like', foto.id, e.currentTarget);
+    }
+    if(btnFavDetalle) {
+        btnFavDetalle.className = `btn-glass btn-fav ${esFav ? 'fav-active' : ''}`;
+        btnFavDetalle.setAttribute('data-target-id', foto.id);
+        btnFavDetalle.onclick = (e) => alternarInteraccion('fav', foto.id, e.currentTarget);
+    }
 
-        // NAVEGACIÓN
-        function cambiarPestaña(btnId, secId) {
-            document.getElementById('mainHeader').style.display = 'flex'; // Volver a mostrar header principal
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.seccion-app').forEach(s => s.classList.remove('activa'));
-            document.getElementById(btnId).classList.add('active');
-            document.getElementById(secId).classList.add('activa');
-        }
-        document.getElementById('navHome').onclick = () => cambiarPestaña('navHome', 'seccionHome');
-        document.getElementById('navVideos').onclick = () => cambiarPestaña('navVideos', 'seccionVideos');
-        document.getElementById('navCanalesList').onclick = () => cambiarPestaña('navCanalesList', 'seccionCanalesList');
-        document.getElementById('navFavs').onclick = () => cambiarPestaña('navFavs', 'seccionFavs');
-        document.getElementById('navSolicitar').onclick = () => cambiarPestaña('navSolicitar', 'seccionSolicitar');
-        document.getElementById('navApoyo').onclick = () => cambiarPestaña('navApoyo', 'seccionApoyo');
+    const gridExplorar = document.getElementById('galeriaExplorar');
+    gridExplorar.innerHTML = ''; 
+    const fragment = document.createDocumentFragment();
+    DATA_FOTOS.filter(f => f.id !== fotoActual.id).sort(() => Math.random() - 0.5).slice(0, 6).forEach(f => crearTarjetaFoto(f, fragment));
+    gridExplorar.appendChild(fragment);
+    
+    document.getElementById('vistaDetalle').classList.add('activa');
+}
 
-        function mostrarToast(m) { const t = document.getElementById('appToast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+document.getElementById('btnCerrarDetalle').onclick = () => { document.getElementById('vistaDetalle').classList.remove('activa'); document.getElementById('bottomNav').style.display = 'flex'; };
+document.getElementById('btnCompartirPin').onclick = async () => { if(!fotoActual) return; if (navigator.share) { try { await navigator.share({ title: fotoActual.titulo, text: "Mira esto!", url: fotoActual.url }); mostrarToast("¡Compartido!"); } catch(e) {} } else { navigator.clipboard.writeText(fotoActual.url); mostrarToast("Enlace copiado"); } };
+
+const overlay = document.getElementById('sheetOverlay'), sheet = document.getElementById('bottomSheetOpciones');
+document.getElementById('btnMenuOpciones').onclick = () => { overlay.classList.add('activo'); sheet.classList.add('activo'); };
+overlay.onclick = () => { overlay.classList.remove('activo'); sheet.classList.remove('activo'); };
+document.getElementById('btnCopiarEnlace').onclick = () => { if(!fotoActual) return; navigator.clipboard.writeText(fotoActual.url).then(() => { mostrarToast("Enlace copiado"); overlay.click(); }); };
+document.getElementById('btnPantallaCompleta').onclick = () => { if(!fotoActual) return; const img = document.getElementById('imgDetalleSrc'); if (img.requestFullscreen) { img.requestFullscreen(); } else if (img.webkitRequestFullscreen) { img.webkitRequestFullscreen(); } overlay.click(); };
+
+// NAVEGACIÓN
+function cambiarPestaña(btnId, secId) {
+    document.getElementById('mainHeader').style.display = 'flex'; 
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.seccion-app').forEach(s => s.classList.remove('activa'));
+    document.getElementById(btnId).classList.add('active');
+    document.getElementById(secId).classList.add('activa');
+}
+document.getElementById('navHome').onclick = () => cambiarPestaña('navHome', 'seccionHome');
+document.getElementById('navVideos').onclick = () => cambiarPestaña('navVideos', 'seccionVideos');
+document.getElementById('navCanalesList').onclick = () => cambiarPestaña('navCanalesList', 'seccionCanalesList');
+document.getElementById('navFavs').onclick = () => cambiarPestaña('navFavs', 'seccionFavs');
+document.getElementById('navSolicitar').onclick = () => cambiarPestaña('navSolicitar', 'seccionSolicitar');
+document.getElementById('navApoyo').onclick = () => cambiarPestaña('navApoyo', 'seccionApoyo');
+
+function mostrarToast(m) { const t = document.getElementById('appToast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
     </script>
 </body>
 </html>
-
