@@ -1,1099 +1,2111 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mi Galería Multimedia Pro</title>
-    <style>
-        :root {
-            --bg-puro: #0f0f11;
-            --bg-tarjeta: #18181c;
-            --bg-sheet: #1f1f23;
-            --texto: #ffffff;
-            --texto-muted: #a1a1aa;
-            --pinterest-red: #e60023;
-            --telegram-blue: #2AABEE;
-            --corazon: #ff0040;
-            --estrella: #eab308;
-            --glass: rgba(255, 255, 255, 0.08);
-            --glass-border: rgba(255, 255, 255, 0.05);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>TikTok Advanced Player - NOVA</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      background-color: #000;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+    }
 
-        body { background-color: var(--bg-puro); color: var(--texto); min-height: 100vh; height: 100vh; overflow: hidden; position: relative; }
+    .app-container {
+      width: 100%;
+      height: 100%;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
 
-        @keyframes pulse { 0% { background-color: #1a1a1f; } 50% { background-color: #26262b; } 100% { background-color: #1a1a1f; } }
-        .skeleton { animation: pulse 1.5s infinite ease-in-out; }
+    .app-container::-webkit-scrollbar {
+      display: none;
+    }
 
-        header { height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; max-width: 1400px; margin: 0 auto; }
-        .logo-container { display: flex; align-items: center; gap: 8px; }
-        .logo-icon { width: 32px; height: 32px; background: var(--pinterest-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.2rem; }
-        .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; }
+    .feed-item {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+      overflow: hidden;
+      will-change: transform;
+      transform: translateZ(0);
+    }
 
-        .seccion-app { display: none; position: absolute; top: 70px; bottom: 0; left: 0; right: 0; overflow-y: auto; padding: 10px 15px 120px 15px; max-width: 1400px; margin: 0 auto; -webkit-overflow-scrolling: touch; }
-        .seccion-app.activa { display: block; }
+    /* ADAPTACIÓN DE VIDEO DINÁMICA (ESTILO TIKTOK ADAPTATIVO) */
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+    }
 
-        /* MASONRY Y PINES */
-        .galeria-masonry { column-count: 2; column-gap: 12px; width: 100%; }
-        @media (min-width: 640px) { .galeria-masonry { column-count: 3; } }
-        @media (min-width: 1024px) { .galeria-masonry { column-count: 4; column-gap: 16px; } }
+    .video-player {
+      max-width: 100%;
+      max-height: 100%;
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* Garantiza la relación de aspecto exacta (16:9, 9:16, etc.) */
+      will-change: transform;
+      background: #000;
+    }
 
-        .pin-card { break-inside: avoid; margin-bottom: 12px; border-radius: 16px; overflow: hidden; position: relative; background: var(--bg-tarjeta); cursor: pointer; transition: transform 0.2s ease; user-select: none; }
-        .pin-card img { width: 100%; display: block; border-radius: 16px; transition: opacity 0.3s ease; opacity: 0; pointer-events: none; }
-        .pin-card img.loaded { opacity: 1; }
-        .pin-overlay { position: absolute; bottom: 0; left: 0; right: 0; top: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%); padding: 14px; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; transition: opacity 0.25s ease; }
-        @media (max-width: 768px) { .pin-overlay { opacity: 1; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 40%); } }
-        .pin-card:hover .pin-overlay { opacity: 1; }
-        .pin-info-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .pin-title { font-size: 0.85rem; font-weight: 600; color: #fff; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;}
-        .pin-title:hover { text-decoration: underline; }
-        .pin-actions { display: flex; gap: 6px; }
-        
-        .btn-glass { background: var(--glass); backdrop-filter: blur(8px); border: 1px solid var(--glass-border); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s, transform 0.1s; }
-        .btn-glass svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.8; pointer-events: none; }
-        .btn-glass.active svg { fill: var(--corazon); stroke: var(--corazon); }
-        .btn-glass.fav-active svg { fill: var(--estrella); stroke: var(--estrella); }
+    .ui-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
 
-        /* VIDEOS */
-        .videos-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        @media (min-width: 640px) { .videos-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
-        @media (min-width: 1100px) { .videos-grid { grid-template-columns: repeat(3, 1fr); } }
+    .ui-layer * {
+      pointer-events: auto;
+    }
 
-        .video-card-yt { background: transparent; display: flex; flex-direction: column; gap: 12px; cursor: pointer; }
-        .vid-thumb-container { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 14px; overflow: hidden; background: #000; border: 1px solid var(--glass-border); }
-        .vid-thumb-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; pointer-events: none; opacity: 0.85; transition: opacity 0.3s; object-fit: cover; }
-        .video-card-yt:hover .vid-thumb-container iframe { opacity: 1; }
-        .vid-blocker-top { position: absolute; top: 0; left: 0; width: 100%; height: 45px; background: #000; z-index: 5; pointer-events: none; }
-        .vid-blocker-bottom { position: absolute; bottom: 0; left: 0; width: 100%; height: 45px; background: #000; z-index: 5; pointer-events: none; }
-        .vid-click-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; cursor: pointer; background: transparent; }
-        .btn-play-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(230, 0, 35, 0.95); width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.4); opacity: 0; transition: opacity 0.2s, transform 0.2s; z-index: 15; pointer-events: none; }
-        .video-card-yt:hover .btn-play-center { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-        @media (max-width: 768px) { .btn-play-center { opacity: 1; } }
-        .btn-play-center svg { width: 20px; height: 20px; fill: #fff; margin-left: 3px; }
-        .badge-duration { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.9); padding: 3px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: #fff; letter-spacing: 0.5px; z-index: 15; }
-        
-        .vid-info-container { display: flex; gap: 12px; padding: 0 4px; }
-        .vid-avatar { width: 36px; height: 36px; border-radius: 50%; background: #2a2a32; border: 1px solid var(--glass-border); display: flex; flex-shrink: 0; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
-        .vid-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .vid-text-block { flex-grow: 1; overflow: hidden; }
-        .vid-title { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
-        .vid-channel { font-size: 0.8rem; color: var(--texto-muted); cursor: pointer; }
-        .vid-channel:hover { color: #fff; }
-        .vid-actions-block { display: flex; gap: 6px; flex-shrink: 0; align-items: flex-start; }
+    body.player-mode .ui-layer {
+      opacity: 0;
+      pointer-events: none !important;
+    }
 
-        /* LISTA DE CANALES (NUEVA SECCIÓN EXPLORAR) */
-        .canales-list-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        @media (min-width: 640px) { .canales-list-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1024px) { .canales-list-grid { grid-template-columns: repeat(3, 1fr); } }
+    .state-icon-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.6);
+      width: 80px;
+      height: 80px;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(4px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 12;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
 
-        .canal-card-explore { position: relative; width: 100%; height: 160px; border-radius: 20px; overflow: hidden; cursor: pointer; border: 1px solid var(--glass-border); transition: transform 0.2s, box-shadow 0.2s; }
-        .canal-card-explore:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .canal-card-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-        .canal-card-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; background: linear-gradient(to right, rgba(15, 15, 17, 0.95) 0%, rgba(15, 15, 17, 0.6) 50%, rgba(0,0,0,0.2) 100%); backdrop-filter: blur(2px); padding: 20px; display: flex; align-items: center; gap: 15px; }
-        .canal-explore-logo { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--glass-border); object-fit: cover; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
-        .canal-explore-info { display: flex; flex-direction: column; }
-        .canal-explore-titulo { font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
-        .canal-explore-desc { font-size: 0.85rem; color: #ddd; }
+    .state-icon-overlay.active {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
 
-        /* PERFIL DEL CANAL */
-        #seccionCanal { padding: 0 0 120px 0; }
-        .canal-header { position: relative; width: 100%; margin-bottom: 20px; }
-        .canal-banner { width: 100%; height: 180px; object-fit: cover; background: #222; }
-        .btn-volver-canal { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 10; }
-        .btn-volver-canal svg { width: 24px; height: 24px; stroke: #fff; stroke-width: 2; fill: none; }
-        .canal-info-bar { display: flex; align-items: center; gap: 15px; padding: 0 20px; margin-top: -30px; position: relative; z-index: 5; }
-        .canal-logo-img { width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--bg-puro); background: #333; object-fit: cover; }
-        .canal-titulos { display: flex; flex-direction: column; margin-top: 30px; }
-        .canal-nombre-h1 { font-size: 1.5rem; font-weight: 700; color: #fff; }
-        .canal-stats { font-size: 0.85rem; color: var(--texto-muted); margin-top: 4px; }
-        .canal-tabs { display: flex; gap: 20px; padding: 0 20px; border-bottom: 1px solid var(--glass-border); margin-top: 20px; margin-bottom: 20px; }
-        .c-tab { background: none; border: none; color: var(--texto-muted); font-size: 0.95rem; font-weight: 600; padding: 10px 0; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
-        .c-tab.active { color: #fff; border-bottom: 2px solid var(--pinterest-red); }
-        .canal-content-area { padding: 0 15px; }
-        .canal-grid-container { display: none; }
-        .canal-grid-container.active { display: block; }
+    .state-icon-overlay svg {
+      width: 42px;
+      height: 42px;
+      fill: #ffffff;
+    }
 
-        /* SECCIÓN APOYO DEV (NUEVA) */
-        .apoyo-container { display: flex; justify-content: center; padding-top: 20px; }
-        .apoyo-card { background: var(--bg-tarjeta); border: 1px solid var(--glass-border); padding: 40px 30px; border-radius: 24px; max-width: 600px; width: 100%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
-        .apoyo-glow { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; background: radial-gradient(circle, rgba(42, 171, 238, 0.15) 0%, rgba(0,0,0,0) 70%); z-index: 1; pointer-events: none; }
-        .apoyo-icon { position: relative; z-index: 2; width: 70px; height: 70px; background: rgba(42, 171, 238, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 1px solid rgba(42, 171, 238, 0.3); }
-        .apoyo-icon svg { width: 32px; height: 32px; fill: none; stroke: var(--telegram-blue); stroke-width: 2; }
-        .apoyo-card h2 { position: relative; z-index: 2; font-size: 1.8rem; margin-bottom: 15px; font-weight: 800; }
-        .apoyo-card p { position: relative; z-index: 2; color: var(--texto-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 30px; }
-        .apoyo-lista-valores { text-align: left; margin-bottom: 30px; position: relative; z-index: 2; display: inline-block; }
-        .apoyo-lista-valores li { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #ddd; margin-bottom: 12px; }
-        .apoyo-lista-valores li svg { width: 18px; height: 18px; stroke: #00e673; fill: none; stroke-width: 2; }
-        
-        /* SOLICITUDES */
-        .solicitud-container-split { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        @media (min-width: 900px) { .solicitud-container-split { grid-template-columns: 1fr 1fr; } }
-        .solicitud-wrapper, .crear-canal-wrapper { background: var(--bg-tarjeta); padding: 25px; border-radius: 24px; border: 1px solid var(--glass-border); height: fit-content; }
-        .solicitud-wrapper h2, .crear-canal-wrapper h2 { font-size: 1.3rem; margin-bottom: 6px; }
-        .solicitud-wrapper p, .crear-canal-wrapper p { color: var(--texto-muted); font-size: 0.85rem; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px; }
-        .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--texto-muted); }
-        .form-control { background: var(--bg-sheet); border: 1px solid var(--glass-border); padding: 12px 16px; border-radius: 12px; color: #fff; font-size: 0.95rem; outline: none; width: 100%; resize: none; }
-        
-        .btn-enviar-solicitud { background: var(--pinterest-red); color: #fff; border: none; padding: 14px; width: 100%; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 5px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
-        .btn-enviar-solicitud:hover { background: #cc001f; }
-        .btn-enviar-solicitud:disabled { background: #26262b; color: #555; cursor: not-allowed; }
-        
-        .btn-telegram { background: var(--telegram-blue); color: #fff; border: none; padding: 14px; width: 100%; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 5px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; position: relative; z-index: 2; }
-        .btn-telegram:hover { background: #228ec7; }
-        .limite-alerta { color: var(--corazon); font-size: 0.8rem; text-align: center; margin-top: 10px; font-weight: 600; display: none; }
+    /* BARRA SUPERIOR */
+    .top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding-top: calc(env(safe-area-inset-top, 20px) + 12px);
+      padding-left: 16px;
+      padding-right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+    }
 
-        /* SEGURIDAD INICIAL & INFO BUBBLE */
-        .seguridad-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-puro); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .login-box { max-width: 340px; width: 100%; text-align: center; }
-        .login-icon-lock { width: 60px; height: 60px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 1px solid var(--glass-border); }
-        .login-icon-lock svg { width: 28px; height: 28px; fill: none; stroke: var(--pinterest-red); stroke-width: 2; }
-        .login-box h2 { font-size: 1.5rem; margin-bottom: 8px; font-weight: 700; }
-        .login-box p { color: var(--texto-muted); font-size: 0.85rem; margin-bottom: 25px; }
-        .input-password { width: 100%; background: var(--bg-tarjeta); border: 1px solid var(--glass-border); padding: 16px; border-radius: 14px; color: #fff; text-align: center; font-size: 1.3rem; letter-spacing: 4px; outline: none; margin-bottom: 15px; }
-        .btn-login { background: #fff; color: #000; border: none; width: 100%; padding: 15px; border-radius: 14px; font-weight: 700; font-size: 0.95rem; cursor: pointer; }
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        .info-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 5050; display: none; align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: opacity 0.3s; }
-        .info-modal-overlay.activo { display: flex; opacity: 1; }
-        .info-modal-box { background: var(--bg-tarjeta); border: 1px solid var(--glass-border); padding: 30px 20px; border-radius: 20px; text-align: center; max-width: 380px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1); }
-        .info-modal-overlay.activo .info-modal-box { transform: translateY(0); }
-        .info-icon { width: 50px; height: 50px; background: rgba(234, 179, 8, 0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 15px auto; }
-        .info-icon svg { width: 24px; height: 24px; fill: none; stroke: var(--estrella); stroke-width: 2; }
-        .info-modal-box h3 { font-size: 1.2rem; margin-bottom: 10px; }
-        .info-modal-box p { font-size: 0.9rem; color: var(--texto-muted); line-height: 1.5; margin-bottom: 20px; }
-        .btn-entendido { background: #fff; color: #000; border: none; padding: 12px 30px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; }
+    .search-trigger, .seen-trigger, .settings-trigger {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
 
-        /* VISTA DETALLE FOTO */
-        .vista-detalle { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-puro); z-index: 2000; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.1, 0.76, 0.55, 0.94); overflow-y: auto; }
-        .vista-detalle.activa { transform: translateY(0); }
-        .detalle-nav-top { position: sticky; top: 0; background: rgba(15, 15, 17, 0.85); backdrop-filter: blur(10px); display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; z-index: 2020; }
-        .btn-save-pinterest { background: var(--pinterest-red); color: #fff; border: none; padding: 10px 20px; border-radius: 24px; font-weight: 700; font-size: 0.95rem; cursor: pointer; }
-        .detalle-img-container { width: 100%; display: flex; justify-content: center; align-items: center; background: #050507; padding: 10px 0; }
-        .detalle-img-container img { max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 8px; }
-        .detalle-info-box { max-width: 750px; margin: 0 auto; width: 100%; padding: 20px; }
-        .detalle-meta-row { display: flex; justify-content: space-between; align-items: center; }
-        .autor-info { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .autor-info:hover .autor-name { text-decoration: underline; }
-        .autor-avatar { width: 40px; height: 40px; background: #3a3a42; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .autor-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .autor-name { font-weight: 600; font-size: 1rem; }
-        .detalle-iconos-row { display: flex; gap: 12px; }
-        .mas-explorar { padding: 40px 10px 120px 10px; max-width: 1400px; margin: 0 auto; border-top: 1px solid var(--glass-border); }
-        .mas-explorar h3 { font-size: 1.1rem; margin-bottom: 20px; text-align: center; }
+    .search-trigger:active, .seen-trigger:active, .settings-trigger:active {
+      transform: scale(0.9);
+      background: rgba(255, 255, 255, 0.3);
+    }
 
-        /* REPRODUCTOR FULLSCREEN */
-        #videoFullscreenContainer { display: none; position: fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:9999; }
-        #videoFullscreenContainer iframe { width:100%; height:100%; border:none; position: absolute; top: 0; left: 0; z-index: 1; }
-        .fs-blocker-top { position: absolute; top: 0; left: 0; width: 100%; height: 110px; background: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.98) 20%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0.45) 80%, rgba(0,0,0,0) 100%); z-index: 10; pointer-events: none; }
-        .fs-blocker-bottom { position: absolute; bottom: 0; left: 0; width: 100%; height: 70px; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0) 100%); z-index: 2; pointer-events: none; }
-        .btn-sandbox-config { position: absolute; top: 15px; left: 15px; z-index: 50; background: transparent; border: none; cursor: pointer; padding: 5px; border-radius: 50%; transition: background 0.2s; }
-        .btn-sandbox-config:hover { background: rgba(255,255,255,0.1); }
-        .btn-sandbox-config svg { width: 28px; height: 28px; fill: none; stroke: #fff; stroke-width: 2; }
-        .sandbox-menu { position: absolute; top: 65px; left: 15px; background: rgba(24, 24, 28, 0.98); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); padding: 18px; border-radius: 14px; z-index: 60; display: none; color: #fff; min-width: 240px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .sandbox-menu.active { display: block; }
-        .sandbox-menu h4 { margin-bottom: 12px; font-size: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; color: var(--pinterest-red); }
-        .sandbox-menu label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 0.85rem; cursor: pointer; font-weight: 600; }
-        .sandbox-menu input[type="checkbox"] { accent-color: var(--pinterest-red); width: 18px; height: 18px; cursor: pointer; }
-        .btn-close-fs { position: absolute; top: 15px; right: 15px; z-index: 50; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 38px; height: 38px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
-        .btn-close-fs svg { width: 20px; height: 20px; stroke: #fff; stroke-width: 2; }
+    .top-tabs {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.05rem;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    }
 
-        /* BOTTOM NAV (ADAPTADA PARA 6 ICONOS) */
-        .bottom-nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(24, 24, 28, 0.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 10px 15px; border-radius: 40px; display: flex; gap: 6px; z-index: 1000; box-shadow: 0 12px 40px rgba(0,0,0,0.7); border: 1px solid var(--glass-border); max-width: 95%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-        .bottom-nav::-webkit-scrollbar { display: none; }
-        .nav-item { background: transparent; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 20px; color: var(--texto-muted); font-size: 0.6rem; gap: 4px; font-weight: 600; min-width: 55px; flex-shrink: 0; }
-        .nav-item svg { width: 22px; height: 22px; fill: none; stroke: var(--texto-muted); stroke-width: 1.8; transition: stroke 0.2s; }
-        .nav-item.active { color: #fff; }
-        .nav-item.active svg { stroke: var(--texto); stroke-width: 2.2; }
+    .top-tabs span.active {
+      opacity: 1;
+      border-bottom: 3px solid #fff;
+      padding-bottom: 2px;
+      border-radius: 1px;
+    }
 
-        /* BOTTOM SHEET OPCIONES */
-        .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(4px); }
-        .sheet-overlay.activo { opacity: 1; pointer-events: auto; }
-        .bottom-sheet { position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--bg-sheet); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 20px 20px 40px 20px; z-index: 3010; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94); }
-        .bottom-sheet.activo { transform: translateY(0); }
-        .sheet-linea { width: 36px; height: 5px; background: #444; border-radius: 5px; margin: 0 auto 20px auto; }
-        .sheet-titulo { font-size: 1.1rem; font-weight: 700; text-align: center; margin-bottom: 20px; }
-        .tablero-item { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--bg-tarjeta); border-radius: 12px; cursor: pointer; transition: background 0.2s; }
-        .tablero-item:hover { background: #26262b; }
-        
-        .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #fff; color: #000; padding: 12px 24px; border-radius: 30px; font-weight: 700; font-size: 0.9rem; z-index: 6000; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-        .toast.show { transform: translateX(-50%) translateY(0); }
-    </style>
+    .dl-launcher-btn {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 20px) + 12px);
+      right: 118px;
+      z-index: 90;
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .dl-launcher-btn.active {
+      display: flex;
+    }
+
+    .dl-launcher-btn.animating svg {
+      animation: dlPulse 1.2s infinite ease-in-out;
+    }
+
+    .dl-badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background: #fe2c55;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #000;
+    }
+
+    @keyframes dlPulse {
+      0% { transform: translateY(-2px); }
+      50% { transform: translateY(2px); }
+      100% { transform: translateY(-2px); }
+    }
+
+    /* MODALES DESLIZANTES */
+    .dl-modal-overlay, .settings-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 120;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .dl-modal-overlay.open, .settings-modal-overlay.open {
+      display: flex;
+      opacity: 1;
+    }
+
+    .dl-modal-content, .settings-modal-content {
+      width: 100%;
+      max-width: 500px;
+      background: #121212;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 20px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.8);
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+      overflow-y: auto;
+    }
+
+    .dl-modal-overlay.open .dl-modal-content,
+    .settings-modal-overlay.open .settings-modal-content {
+      transform: translateY(0);
+    }
+
+    .dl-modal-header, .settings-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #222;
+    }
+
+    .dl-modal-header h3, .settings-modal-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .dl-modal-close, .settings-modal-close {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+
+    .dl-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .dl-card {
+      display: flex;
+      gap: 12px;
+      background: #1c1c1e;
+      padding: 10px;
+      border-radius: 12px;
+      align-items: center;
+    }
+
+    .dl-card-thumb {
+      width: 60px;
+      height: 60px;
+      background: #2c2c2e;
+      border-radius: 8px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .dl-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .dl-card-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+
+    .dl-card-desc {
+      font-size: 0.75rem;
+      color: #8e8e93;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 8px;
+    }
+
+    .dl-progress-bar-bg {
+      width: 100%;
+      height: 4px;
+      background: #3a3a3c;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .dl-progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #fe2c55;
+      transition: width 0.2s linear;
+    }
+
+    .dl-status-text {
+      font-size: 0.7rem;
+      color: #aaa;
+    }
+
+    .dl-card-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dl-btn {
+      background: #2c2c2e;
+      border: none;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .dl-btn:active {
+      background: #3a3a3c;
+    }
+
+    .dl-btn.cancel {
+      background: rgba(254, 44, 85, 0.15);
+      color: #fe2c55;
+    }
+
+    /* ESTILOS DEL SECTOR DE AJUSTES */
+    .setting-group {
+      margin-bottom: 20px;
+    }
+
+    .setting-group-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #fe2c55;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .setting-item-card {
+      background: #1a1a1c;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .setting-info-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .setting-info-sub {
+      font-size: 0.78rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .setting-btn-action {
+      background: #2a2a2d;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .setting-btn-action:active {
+      background: #3a3a3e;
+      transform: scale(0.96);
+    }
+
+    .setting-btn-action.danger {
+      background: rgba(254, 44, 85, 0.15);
+      color: #fe2c55;
+      border-color: rgba(254, 44, 85, 0.3);
+    }
+
+    .saver-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .saver-card {
+      background: #242426;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .saver-card.active {
+      border-color: #fe2c55;
+      background: rgba(254, 44, 85, 0.08);
+    }
+
+    .saver-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .saver-desc {
+      font-size: 0.72rem;
+      color: #aaa;
+      line-height: 1.2;
+    }
+
+    /* MODAL DE CONFIRMACIÓN CUSTOMIZADO Y ELEGANTE (CENTRADOS) */
+    .custom-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(12px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .custom-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .custom-modal-card {
+      background: #18181a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+      transform: scale(0.85);
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .custom-modal-overlay.active .custom-modal-card {
+      transform: scale(1);
+    }
+
+    .custom-modal-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(254, 44, 85, 0.12);
+      color: #fe2c55;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px auto;
+    }
+
+    .custom-modal-icon svg {
+      width: 30px;
+      height: 30px;
+      fill: currentColor;
+    }
+
+    .custom-modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .custom-modal-body {
+      font-size: 0.85rem;
+      color: #aaa;
+      line-height: 1.45;
+      margin-bottom: 22px;
+    }
+
+    .custom-modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .custom-modal-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .custom-modal-btn.cancel {
+      background: #28282b;
+      color: #fff;
+    }
+
+    .custom-modal-btn.cancel:active {
+      background: #333336;
+    }
+
+    .custom-modal-btn.confirm {
+      background: #fe2c55;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(254, 44, 85, 0.3);
+    }
+
+    .custom-modal-btn.confirm:active {
+      transform: scale(0.96);
+    }
+
+    /* MODAL BUSCADOR */
+    .search-modal {
+      position: fixed;
+      inset: 0;
+      background: #121212;
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      padding: calc(env(safe-area-inset-top, 20px) + 12px) 12px 12px 12px;
+    }
+
+    .search-modal.active {
+      display: flex;
+    }
+
+    .search-header {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .search-input {
+      flex: 1;
+      background: #262626;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 20px;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .close-search {
+      background: none;
+      border: none;
+      color: #fe2c55;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .search-results-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      overflow-y: auto;
+      padding-bottom: 20px;
+    }
+
+    .tt-card {
+      background: #1a1a1a;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .tt-thumb-box {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 9 / 14;
+      background: #000;
+    }
+
+    .tt-thumb-box video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .tt-card-info {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #181818;
+    }
+
+    .tt-card-desc-box {
+      font-size: 0.82rem;
+      color: #eee;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      font-weight: 400;
+    }
+
+    .tt-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 4px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .tt-share-btn, .tt-unlike-btn {
+      background: none;
+      border: none;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+
+    .tt-unlike-btn {
+      color: #fe2c55;
+      font-weight: 600;
+    }
+
+    .tt-share-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: #aaa;
+    }
+
+    /* VISTA DE VIDEOS GUARDADOS/VISTOS */
+    .seen-modal {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 110;
+      display: none;
+      flex-direction: column;
+      padding: calc(env(safe-area-inset-top, 20px) + 12px) 16px 16px 16px;
+    }
+
+    .seen-modal.active {
+      display: flex;
+    }
+
+    .seen-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .seen-header h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .video-info {
+      position: absolute;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 65px);
+      left: 16px;
+      right: 85px;
+      z-index: 15;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    }
+
+    .video-info .username {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+    }
+
+    .video-info .description-container {
+      font-size: 0.92rem;
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+
+    .video-info .description {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .video-info .description.expanded {
+      -webkit-line-clamp: unset;
+      overflow: visible;
+    }
+
+    .btn-toggle-desc {
+      background: none;
+      border: none;
+      color: #bbb;
+      font-weight: bold;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .side-bar {
+      position: absolute;
+      right: 14px;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 70px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      z-index: 15;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      position: relative;
+    }
+
+    .action-btn .icon-box {
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(8px);
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-btn:active .icon-box {
+      transform: scale(0.8);
+    }
+
+    .action-btn svg {
+      width: 28px;
+      height: 28px;
+      fill: #ffffff;
+      transition: fill 0.2s ease;
+      z-index: 2;
+    }
+
+    .action-btn.liked .icon-box {
+      background: rgba(254, 44, 85, 0.2);
+    }
+    .action-btn.liked svg {
+      fill: #fe2c55;
+      animation: popHeart 0.3s ease-in-out;
+    }
+
+    .speed-badge {
+      font-weight: 800;
+      font-size: 0.85rem;
+      letter-spacing: -0.5px;
+    }
+
+    .btn-label {
+      font-weight: 600;
+      font-size: 0.72rem;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+
+    .custom-player-bar {
+      position: absolute;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 15px);
+      left: 16px;
+      right: 16px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 20;
+    }
+
+    .mute-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mute-btn svg {
+      width: 26px;
+      height: 26px;
+      fill: #fff;
+    }
+
+    .progress-wrapper {
+      flex: 1;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+      transition: height 0.15s ease;
+    }
+
+    .progress-wrapper:hover .progress-track {
+      height: 6px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #fe2c55, #ff0050);
+      border-radius: 2px;
+      will-change: width;
+    }
+
+    .seek-slider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .time-display {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      min-width: 38px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .floating-heart {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      pointer-events: none;
+      z-index: 99;
+      transform: translate(-50%, -50%) scale(0);
+      animation: heartPop 0.8s ease-out forwards;
+    }
+
+    .floating-heart svg {
+      width: 100%;
+      height: 100%;
+      fill: #fe2c55;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+    }
+
+    @keyframes heartPop {
+      0% { transform: translate(-50%, -50%) scale(0) rotate(-15deg); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(1.3) rotate(15deg); opacity: 1; }
+      100% { transform: translate(-50%, -120px) scale(1) rotate(0deg); opacity: 0; }
+    }
+
+    @keyframes popHeart {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="seguridad-screen" id="seguridadScreen">
-        <div class="login-box">
-            <div class="login-icon-lock">
-                <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+  <!-- BOTÓN LAUNCHER DESCARGAS -->
+  <button id="dlLauncherBtn" class="dl-launcher-btn" onclick="openDownloadModal()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff">
+      <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+    </svg>
+    <div id="dlBadge" class="dl-badge">0</div>
+  </button>
+
+  <!-- MODAL DE DESCARGAS -->
+  <div id="dlModalOverlay" class="dl-modal-overlay" onclick="closeDownloadModal(event)">
+    <div class="dl-modal-content" onclick="event.stopPropagation()">
+      <div class="dl-modal-header">
+        <h3>Centro de Descargas</h3>
+        <button class="dl-modal-close" onclick="closeDownloadModal()">&times;</button>
+      </div>
+      <div id="dlListContainer" class="dl-list"></div>
+    </div>
+  </div>
+
+  <!-- MODAL DE AJUSTES -->
+  <div id="settingsModalOverlay" class="settings-modal-overlay" onclick="closeSettingsModal(event)">
+    <div class="settings-modal-content" onclick="event.stopPropagation()">
+      <div class="settings-modal-header">
+        <h3>Ajustes del Sistema</h3>
+        <button class="settings-modal-close" onclick="closeSettingsModal()">&times;</button>
+      </div>
+
+      <div class="setting-group">
+        <div class="setting-group-title">Interacciones</div>
+        <div class="setting-item-card">
+          <div class="setting-row">
+            <div>
+              <div class="setting-info-title">Descargas del Sistema</div>
+              <div class="setting-info-sub">Administra las tareas y archivos en segundo plano</div>
             </div>
-            <h2 id="seguridadTitulo">Crear Contraseña</h2>
-            <p id="seguridadDesc">Asigna una clave rápida de acceso.</p>
-            <input type="password" class="input-password" id="inputPass" maxlength="8" placeholder="••••">
-            <button class="btn-login" id="btnAccederSeguridad">Configurar</button>
-        </div>
-    </div>
-
-    <!-- MODAL INFO (Aparece tras el login) -->
-    <div class="info-modal-overlay" id="infoModalOverlay">
-    <div class="info-modal-box">
-        <div class="info-icon">
-            <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 16v-4M12 8h.01"/>
-            </svg>
+            <button class="setting-btn-action" onclick="closeSettingsModal(); openDownloadModal();">Abrir Panel</button>
+          </div>
         </div>
 
-        <h3>Información de Contenido</h3>
-
-        <p>
-            Parte del contenido visual mostrado en esta plataforma puede provenir de fuentes públicas, comunidades externas o servicios de terceros. Los enlaces compartidos son únicamente referencias externas y el contenido permanece alojado en sus respectivos servidores.
-        </p>
-
-        <p>
-            Esta plataforma funciona como un visor y organizador de contenido, sin almacenar ni distribuir archivos protegidos. Todos los derechos pertenecen a sus respectivos propietarios y creadores.
-        </p>
-
-        <button class="btn-entendido" id="btnEntendidoModal">
-            Continuar
-        </button>
-    </div>
-</div>
-
-<header id="mainHeader">
-    <div class="logo-container">
-        <div class="logo-icon">M</div>
-        <div class="logo">Mi Galería</div>
-    </div>
-</header>
-
-    <!-- 1. SECCIÓN HOME (FOTOS) -->
-    <main class="seccion-app activa" id="seccionHome">
-        <div class="galeria-masonry" id="galeriaGrid"></div>
-    </main>
-
-    <!-- 2. SECCIÓN VIDEOS -->
-    <section class="seccion-app" id="seccionVideos">
-        <div class="videos-grid" id="videosGrid"></div>
-    </section>
-
-    <!-- 3. NUEVA SECCIÓN: LISTA DE CANALES -->
-    <section class="seccion-app" id="seccionCanalesList">
-        <h2 style="margin-bottom: 20px; font-size: 1.2rem;">Descubrir Canales</h2>
-        <div class="canales-list-grid" id="canalesListadoGrid">
-            <!-- Renderizado desde JS -->
-        </div>
-    </section>
-
-    <!-- SUB-SECCIÓN: PERFIL DEL CANAL (Oculta el header al abrirse) -->
-    <section class="seccion-app" id="seccionCanal">
-        <div class="canal-header">
-            <button class="btn-volver-canal" id="btnVolverCanal" title="Volver">
-                <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            </button>
-            <img class="canal-banner" id="canalBannerSrc" src="" alt="Banner">
-            <div class="canal-info-bar">
-                <img class="canal-logo-img" id="canalLogoSrc" src="" alt="Logo">
-                <div class="canal-titulos">
-                    <h1 class="canal-nombre-h1" id="canalNombreTxt">Nombre Canal</h1>
-                    <div class="canal-stats" id="canalStatsTxt">Colección Privada</div>
-                </div>
+        <div class="setting-item-card">
+          <div class="setting-row">
+            <div>
+              <div class="setting-info-title">Videos que te gustaron</div>
+              <div class="setting-info-sub">Gestiona y elimina tus likes almacenados</div>
             </div>
+            <button class="setting-btn-action" onclick="closeSettingsModal(); toggleSeenModal(true);">Ver Lista</button>
+          </div>
         </div>
-        
-        <div class="canal-tabs">
-            <button class="c-tab active" id="tabCanalFotos">Fotos</button>
-            <button class="c-tab" id="tabCanalVideos">Videos</button>
-        </div>
+      </div>
 
-        <div class="canal-content-area">
-            <div class="galeria-masonry canal-grid-container active" id="canalFotosGrid"></div>
-            <div class="videos-grid canal-grid-container" id="canalVideosGrid"></div>
-            <p id="canalVacioMsj" style="text-align:center; color:var(--texto-muted); display:none; padding: 40px 0;">No hay contenido en esta pestaña.</p>
-        </div>
-    </section>
-
-    <!-- 4. SECCIÓN FAVORITOS -->
-    <section class="seccion-app" id="seccionFavs">
-        <h3 id="txtFavsFotos" style="margin-bottom:15px; font-size:1.1rem; font-weight:700; display:none;">Fotos Guardadas</h3>
-        <div class="galeria-masonry" id="favsFotosGrid" style="margin-bottom: 25px;"></div>
-        
-        <h3 id="txtFavsVideos" style="margin-bottom:15px; font-size:1.1rem; font-weight:700; display:none;">Videos Guardados</h3>
-        <div class="videos-grid" id="favsVideosGrid"></div>
-
-        <p id="favsVacio" style="text-align:center; color:var(--texto-muted); width:100%; padding:40px 0; display:none;">No hay colecciones guardadas.</p>
-    </section>
-
-    <!-- 5. SECCIÓN SOLICITAR (Con Crear Canal) -->
-    <section class="seccion-app" id="seccionSolicitar">
-        <div class="solicitud-container-split">
-            <div class="solicitud-wrapper">
-                <h2>Solicitar Contenido</h2>
-                <p>Pide material multimedia de forma silenciosa al Administrador.</p>
-                <form id="formSolicitud">
-                    <div class="form-group">
-                        <label>Nombre o Alias</label>
-                        <input type="text" id="solNombre" class="form-control" placeholder="Ej: User99" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Categoría</label>
-                        <select id="solTipo" class="form-control">
-                            <option value="Foto">Foto Especial</option>
-                            <option value="Video">Video Clip</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Detalles del pedido</label>
-                        <textarea id="solDetalle" rows="3" class="form-control" placeholder="Descripción del pedido..." required></textarea>
-                    </div>
-                    <button type="submit" class="btn-enviar-solicitud" id="btnEnviarForm">Enviar Petición</button>
-                    <div class="limite-alerta" id="alertaLimite">⚠️ Has alcanzado el límite de solicitudes por hoy.</div>
-                </form>
+      <div class="setting-group">
+        <div class="setting-group-title">Caché y Datos</div>
+        <div class="setting-item-card">
+          <div class="setting-row">
+            <div>
+              <div class="setting-info-title">Almacenamiento Local</div>
+              <div class="setting-info-sub" id="storageUsageSub">Calculando consumo exacto...</div>
             </div>
-            
-            <div class="crear-canal-wrapper">
-    <h2>Programa de Creadores</h2>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 4px;">
+            <button class="setting-btn-action danger" style="flex:1;" onclick="promptClearCache()">Liberar Caché</button>
+            <button class="setting-btn-action danger" style="flex:1;" onclick="promptClearData()">Borrar Datos</button>
+          </div>
+        </div>
 
-    <p>
-        Únete a nuestra red de creadores y obtén tu propio espacio dentro de la plataforma. Cada canal es configurado manualmente por el equipo de administración para garantizar una experiencia organizada, segura y de alta calidad para toda la comunidad.
-    </p>
-
-    <h3 style="margin-top:20px;">📋 ¿Cómo funciona?</h3>
-
-    <p style="font-size:0.9rem; opacity:0.9;">
-        Actualmente los creadores no publican contenido directamente en la plataforma. Todo el material debe enviarse mediante Telegram y será revisado antes de ser agregado a tu canal.
-    </p>
-
-    <ul style="text-align:left; margin-top:15px;">
-        <li>✔️ Debes enviar el nombre de tu canal.</li>
-        <li>✔️ Debes enviar un logo para identificar tu canal.</li>
-        <li>✔️ Debes enviar una imagen de portada vertical para personalizar tu espacio.</li>
-        <li>✔️ Una vez aprobado, crearemos tu canal dentro de la plataforma.</li>
-        <li>✔️ Podrás enviar nuevo contenido por Telegram para ser publicado.</li>
-    </ul>
-
-    <h3 style="margin-top:20px;">🎬 Requisitos para Videos</h3>
-
-    <ul style="text-align:left;">
-        <li>✔️ Duración máxima de 12 minutos.</li>
-        <li>✔️ Tamaño máximo de 100 MB.</li>
-        <li>✔️ Calidad mínima de 480p.</li>
-        <li>✔️ Formatos compatibles: MP4 y WEBM.</li>
-
-        <li>❌ No se permite publicidad sin autorización.</li>
-        <li>❌ No se permiten archivos dañados o incompletos.</li>
-        <li>❌ No se permite contenido de baja calidad visual.</li>
-    </ul>
-
-    <h3 style="margin-top:20px;">🖼️ Requisitos para Imágenes</h3>
-
-    <ul style="text-align:left;">
-        <li>✔️ Imágenes con buena resolución y nitidez.</li>
-        <li>✔️ Máximo de 12 imágenes por día.</li>
-        <li>✔️ Formatos recomendados: JPG, PNG y WEBP.</li>
-
-        <li>❌ No se permite publicidad sin autorización.</li>
-        <li>❌ No se permiten imágenes borrosas o pixeladas.</li>
-        <li>❌ No se permiten marcas de agua promocionales.</li>
-    </ul>
-
-    <p style="font-size:0.85rem; opacity:0.85; margin-top:20px;">
-        El incumplimiento de estas normas puede ocasionar la suspensión o eliminación del canal. Nuestro objetivo es mantener una plataforma limpia, organizada y agradable para todos los usuarios.
-    </p>
-
-    <button type="button" class="btn-telegram" id="btnSolicitarCanal">
-        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#fff;">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0l-3.85 2.42c-.52.34-1.01.5-1.46.49-.5-.01-1.46-.28-2.18-.52-.88-.29-1.58-.45-1.52-.95.03-.26.35-.53.96-.81 3.76-1.64 6.27-2.72 7.53-3.24 3.58-1.48 4.32-1.74 4.81-1.75.11 0 .35.03.48.14.11.09.14.22.15.34-.01.07-.01.21-.02.38z"/>
-        </svg>
-        Solicitar Acceso de Creador
-    </button>
-</div>
-</section>
-
-    <!-- 6. NUEVA SECCIÓN: APOYO AL DEV -->
-    <section class="seccion-app" id="seccionApoyo">
-    <div class="apoyo-container">
-        <div class="apoyo-card">
-            <div class="apoyo-glow"></div>
-
-            <div class="apoyo-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                </svg>
+        <div class="setting-item-card">
+          <div class="setting-info-title">Modo Ahorro de Datos</div>
+          <div class="setting-info-sub">Ajusta el rendimiento para optimizar la red móvil</div>
+          <div class="saver-options">
+            <div class="saver-card" id="saverStandard" onclick="setDataSaverMode('standard')">
+              <div class="saver-title">Estándar</div>
+              <div class="saver-desc">Calidad máxima y procesamiento completo.</div>
             </div>
-
-            <h2>Apoya el Proyecto</h2>
-
-            <p>
-                Esta plataforma ha sido desarrollada de forma independiente, combinando pasión por la programación, rendimiento optimizado y una experiencia moderna para todos los usuarios. Cada actualización, mejora y nueva función es el resultado de horas de trabajo, pruebas y dedicación constante.
-            </p>
-
-            <ul class="apoyo-lista-valores">
-                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 100% Gratuito y Libre de Ads</li>
-                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Diseño fluido y componentes nativos</li>
-                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Privacidad por diseño</li>
-            </ul>
-
-            <p style="font-size: 0.85rem; margin-bottom: 25px;">
-                Si disfrutas de esta plataforma, deseas proponer nuevas ideas, reportar mejoras o apoyar el crecimiento del proyecto, puedes contactar directamente con el desarrollador. También se aceptan donaciones y regalos de Telegram, los cuales ayudan a mantener el proyecto activo, financiar nuevas funciones y seguir ofreciendo una experiencia de calidad para toda la comunidad.
-            </p>
-
-            <a href="https://t.me/anonimo_dt" target="_blank" class="btn-telegram" id="btnApoyoDev" style="width:auto; padding:14px 30px; margin:0 auto; display:inline-flex; align-items:center; gap:8px; text-decoration:none;">
-                <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:#fff;">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0l-3.85 2.42c-.52.34-1.01.5-1.46.49-.5-.01-1.46-.28-2.18-.52-.88-.29-1.58-.45-1.52-.95.03-.26.35-.53.96-.81 3.76-1.64 6.27-2.72 7.53-3.24 3.58-1.48 4.32-1.74 4.81-1.75.11 0 .35.03.48.14.11.09.14.22.15.34-.01.07-.01.21-.02.38z"/>
-                </svg>
-                Hablar con el Desarrollador
-            </a>
-
-        </div>
-    </div>
-</section>
-
-    <!-- BARRA DE NAVEGACIÓN INFERIOR (6 ÍTEMS) -->
-    <nav class="bottom-nav" id="bottomNav">
-        <button class="nav-item active" id="navHome">
-            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>Fotos
-        </button>
-        <button class="nav-item" id="navVideos">
-            <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Videos
-        </button>
-        <button class="nav-item" id="navCanalesList">
-            <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>Canales
-        </button>
-        <button class="nav-item" id="navFavs">
-            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>Guardado
-        </button>
-        <button class="nav-item" id="navSolicitar">
-            <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Solicitar
-        </button>
-        <button class="nav-item" id="navApoyo">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>Apoyo
-        </button>
-    </nav>
-
-    <!-- VISTA DETALLE Y FULLSCREEN ... (El resto de la UI oculta sigue igual) -->
-    <div class="vista-detalle" id="vistaDetalle">
-        <div class="detalle-nav-top">
-            <button class="btn-glass" id="btnCerrarDetalle"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
-            <button class="btn-save-pinterest" id="btnCompartirPin">Compartir</button>
-        </div>
-        <div class="detalle-img-container" id="detalleImgContainer">
-            <img id="imgDetalleSrc" src="" alt="">
-        </div>
-        <div class="detalle-info-box">
-            <div class="detalle-meta-row">
-                <div class="autor-info" id="btnIrAlCanalDetalle">
-                    <div class="autor-avatar"><img id="autorAvatarImg" src=""></div>
-                    <div>
-                        <div class="autor-name" id="pinTituloReal">Título Idea</div>
-                        <div style="font-size:0.8rem; color:var(--texto-muted);" id="pinNombreCanal">Mi Colección</div>
-                    </div>
-                </div>
-                <div class="detalle-iconos-row">
-                    <button class="btn-glass" id="btnLikeDetalle"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button>
-                    <button class="btn-glass" id="btnMenuOpciones"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
-                </div>
+            <div class="saver-card" id="saverExtreme" onclick="setDataSaverMode('extreme')">
+              <div class="saver-title">Extremo Pro</div>
+              <div class="saver-desc">Limita velocidad en tiempo real y ahorra recursos.</div>
             </div>
+          </div>
         </div>
-        <div class="mas-explorar">
-            <h3>Más imágenes sugeridas</h3>
-            <div class="galeria-masonry" id="galeriaExplorar"></div>
-        </div>
+      </div>
     </div>
+  </div>
 
-    <div id="videoFullscreenContainer">
-        <div class="fs-blocker-top"></div><div class="fs-blocker-bottom"></div>
-        <button class="btn-sandbox-config" id="btnSandboxMenu"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
-        <button class="btn-close-fs" id="btnCloseFs"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-        <div class="sandbox-menu" id="sandboxPanel">
-            <h4>Seguridad Sandbox</h4>
-            <label><span>Scripts</span> <input type="checkbox" id="chkScripts"></label>
-            <label><span>Same Origin</span> <input type="checkbox" id="chkSameOrigin"></label>
-            <label><span>Popups</span> <input type="checkbox" id="chkPopups"></label>
-            <label><span>Forms</span> <input type="checkbox" id="chkForms"></label>
-            <label><span>Presentation</span> <input type="checkbox" id="chkPresentation"></label>
-        </div>
-        <iframe id="fullscreenIframe" allow="autoplay; fullscreen; encrypted-media"></iframe>
+  <!-- MODAL DE CONFIRMACIÓN CUSTOMIZADO (CENTRO DE PANTALLA) -->
+  <div id="customModalOverlay" class="custom-modal-overlay">
+    <div class="custom-modal-card">
+      <div class="custom-modal-icon" id="customModalIcon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      </div>
+      <div class="custom-modal-title" id="customModalTitle">¿Estás Seguro?</div>
+      <div class="custom-modal-body" id="customModalBody">Esta es una advertencia de acción importante.</div>
+      <div class="custom-modal-actions">
+        <button class="custom-modal-btn cancel" id="customModalCancelBtn" onclick="closeCustomModal()">Cancelar</button>
+        <button class="custom-modal-btn confirm" id="customModalConfirmBtn">Confirmar</button>
+      </div>
     </div>
+  </div>
 
-    <div class="sheet-overlay" id="sheetOverlay"></div>
-    <div class="bottom-sheet" id="bottomSheetOpciones">
-        <div class="sheet-linea"></div><div class="sheet-titulo">Opciones Extras</div>
-        <div class="tablero-item" id="btnPantallaCompleta" style="margin-bottom: 8px;">
-            <span>Abrir en pantalla completa</span>
-            <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:none; stroke:#fff; stroke-width:2;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-        </div>
-        <div class="tablero-item" id="btnCopiarEnlace">
-            <span>Copiar enlace de origen</span>
-            <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:none; stroke:#fff; stroke-width:2;"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg>
-        </div>
+  <main class="app-container" id="appContainer"></main>
+
+  <!-- MODAL BÚSQUEDA -->
+  <div class="search-modal" id="searchModal">
+    <div class="search-header">
+      <input type="text" class="search-input" id="searchInput" placeholder="Buscar por palabra clave o #hashtag..." oninput="handleSearch()">
+      <button class="close-search" onclick="toggleSearchModal(false)">Cancelar</button>
     </div>
-    <div class="toast" id="appToast">Mensaje</div>
+    <div class="search-results-grid" id="searchResults"></div>
+  </div>
 
-    <script>
-        // === MÓDULO DE DATOS Y CANALES ===
-        const CANALES = {
-            "c_telegram": { id: "c_telegram", nombre: "NOVA STREAMING", desc: "Mi Colección", logo: "https://i.picasion.com/pic93/952b50d27a01691febc482a4beb18a98.gif", banner: "https://i.picasion.com/pic93/d2f2db0c3ef1d5c2feace139bdae50bb.gif" },            
-            
-        };
+  <!-- MODAL VISTOS / LIKED VIDEOS -->
+  <div class="seen-modal" id="seenModal">
+    <div class="seen-header">
+      <h2>Videos que te gustaron</h2>
+      <button class="close-search" onclick="toggleSeenModal(false)">Cerrar</button>
+    </div>
+    <div class="search-results-grid" id="seenResults"></div>
+  </div>
 
-        const DATA_FOTOS = [
-    { id: "img_04", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/7cc728f7b3c7b3e86c8c2fdcfc52a623.gif" },
-    { id: "img_05", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/fda276dafc235e1bf270a242d67f11e6.gif" },
-    { id: "img_06", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/883ad7aa677e20ac592eb117178a2a53.gif" },
-    { id: "img_07", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/1d08b08af331e0b3283ac3ddea072dbc.gif" },
-    { id: "img_08", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/4b0c27e34355f833f4b23a0385df245d.gif" },
-    { id: "img_09", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/fda00bc691cb2462be404e126bc7acef.gif" },
-    { id: "img_11", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/8ab76a842d91915a4516e91949a7e507.gif" },
-    { id: "img_12", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/9659c65a2f9ad5781ba426d8c09829e5.gif" },
-    { id: "img_13", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/1eb846fb5162289e6510d5b85d9ce01c.gif" },
-    { id: "img_14", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/dcd698c2983a470ba0b6cdb08e69f7ab.gif" },
-    { id: "img_15", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/d45f3f1deb77e9d5ff53a5c583939897.gif" },
-    { id: "img_16", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/38efb28f23007333a4ba62ea986af2d6.gif" },
-    { id: "img_17", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/912d88930b76e726389fbaa8bdac6e98.gif" },
-    { id: "img_18", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/3ae237c21bf0105aade7b834fae4077f.gif" },
-    { id: "img_19", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/d66894a09c9f1b022b2dfec8473c3dd5.gif" },
-    { id: "img_20", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/fae169ad863ec8b9319f43f202d22b20.gif" },
-    { id: "img_21", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/e3d8ec2c4c0a2d4fb70acb8c6093dad6.gif" },
-    { id: "img_22", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/ff8f4c27ec67982656c9777e8e6c62b2.gif" },
-    { id: "img_23", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/4dd4de9f2b0a01659a870fe4e7b02463.gif" },
-    { id: "img_24", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/ff04d8b078de3ea5d1c4178b25e006da.gif" },
-    { id: "img_25", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/a142f4836056db50861654df0521c00a.gif" },
-    { id: "img_26", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/308f48ce4f9e4e2018260f189d1fd420.gif" },
-    { id: "img_27", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/d2a6f46d47b88e1261cd0c9d213c978a.gif" },
-    { id: "img_28", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/cf5f5ffb6bb6d3e3798507f740f95221.gif" },
-    { id: "img_29", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/cc7ca191708c0cc04f8a8a85bd1a6931.gif" },
-    
-    { id: "img_30", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/4758b6d1b3ca0ad4fcf3568b8942cb4c.gif" },
-    
-    { id: "img_31", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/4758b6d1b3ca0ad4fcf3568b8942cb4c.gif" },
-    
-    { id: "img_32", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/5d1bf013df568bdb615b5e094c70abe3.gif" },
-    
-    { id: "img_33", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/e74e4d36b71b1de0f8bb45a6a5bf630a.gif" },
-    
-    { id: "img_34", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/582506618b8ebf04ec66effc6b98f816.gif" },
-    
-    { id: "img_35", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/9a7bf87081728b5272dbba6ce1c45c5c.gif" },
-    
-    { id: "img_36", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/82d27db910bb705ce5e801e37100738f.gif" },
-    
-    { id: "img_37", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/3ff4b2646132b3bed76f3332fe1fff6e.gif" },
-    
-    { id: "img_38", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/16e897fc1bb7f227fc5f774b7e7f08b7.gif" },
-    
-    { id: "img_39", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/dd0ca521541cc9f755b0f59b8bf7ad93.gif" },
-    
-    { id: "img_40", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/5b42ca3c4703c6932662c8f584aa3bb6.gif" },
-    
-    { id: "img_41", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/3a5bab6af8098c893eda14c9173cd5ce.gif" },
-    
-    { id: "img_42", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/7cd99c11ff5e46548793654f2ab8f4af.gif" },
-    
-    { id: "img_43", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/acff637b2ee5fab251798eefa55e0737.gif" },
-    
-    { id: "img_44", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/e2592173681d66eb2e7c0921b8363bbb.gif" },
-    
-    { id: "img_45", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/30e6cfdb014af451b019a88fd695bae7.gif" },
-    
-    { id: "img_46", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/0137e10f2ab4bd43a39b35e49abf4135.gif" },
-    
-    { id: "img_47", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/9b22b27a5eebe7a18c568264aeaaf9fd.gif" },
-    
-    { id: "img_48", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/3fc74c44617ca131b312fdfadf92467a.gif" },
-    
-    { id: "img_49", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/7f44c42086042650774481b33e268c2e.gif" },
-    
-    { id: "img_50", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/68a0e7cff40cd0e9dbfb80aeaa4ff1f6.gif" },
-    
-    { id: "img_51", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/3df243307a13845e8a1aab2d9d2dccca.gif" },
-    
-    { id: "img_52", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/fc990a617a5d4957b0e7f6cb5caa11ae.gif" },
-    
-    { id: "img_53", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/c34773169f4001f2650117fb83f89b80.gif" },
-    
-    { id: "img_54", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/7a8bea19f4e99f32e8b39bfb274ec7c8.gif" },
-    
-    { id: "img_55", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/50028a94828c234c2ff545344e05c033.gif" },
-    
-    { id: "img_56", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/8bdbfb6c444e6c62990db12cbd09471d.gif" },
-    
-    { id: "img_57", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://i.picasion.com/pic93/a6e10bc5455ca2b6d8bf7bf64360d521.gif" },
-];
+  <script>
+    const VIDEO_DATABASE = [            
+      {
+        id: "nova-01",
+        src: "https://cdn.xfree.com/xfree-prod/b/8/a/b8ab6de3-85c2-4356-913c-425456c2e072/full.mp4",
+        username: "Unchained",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "Lesbians#lesbianas #adolecentes #chicas #sexy"
+      },
+      {
+        id: "nova-02",
+        src: "https://cdn.xfree.com/xfree-prod/5/e/7/5e7eea51-1c33-4a66-b2ec-a51748b08fb8/full.mp4",
+        username: "Unchained",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "Kinky Lesbians Licking And Squirting Each Other #Squirt#Morena#Tatuaje#Orgasmo#Dedos#Lesbianas#Besar#Lamiendo#de- D Edo En El Culo#Vertical Porn"
+      },
+      {
+        id: "nova-03",
+        src: "https://cdn.xfree.com/xfree-prod/6/9/b/69b7ecbc-649b-4af8-99bd-91dd9ace3e28/full.mp4",
+        username: "Diehunter",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "Strapon lesbianas #morena #lesbianas #blanca #sexy"
+      },
+      {
+        id: "nova-04",
+        src: "https://cdn.xfree.com/xfree-prod/0/a/8/0a833dfa-7084-4cb8-bccb-33d45fbbee71/full.mp4",
+        username: "porn",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "lesbians porn !!! #Tetas Grandes#Tatuaje#Consolador#Lesbianas#Bikini#Piercing#Aceite#Besar#Lamiendo#Clítoris#Chicas Tatuadas#fr- F Rotamiento De Coño#Vertical Porn"
+      }, 
+      {
+        id: "nova-05",
+        src: "https://cdn.xfree.com/xfree-prod/2/a/2/2a207fa8-bdba-4cc5-be9a-6dc9948b1050/full.mp4",
+        username: "Unchained",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "Amigas Lesbianas #Dedos#Lesbianas#Arnés Consolador"
+      },
+      {
+        id: "nova-06",
+        src: "https://cdn.xfree.com/xfree-prod/d/a/c/dac8cb0d-2509-477c-8343-8f6e25f93282/full.mp4",
+        username: "pornx",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "🔥 #masturbandome"
+      },
+      {
+        id: "nova-07",
+        src: "https://cdn.xfree.com/xfree-prod/6/3/e/63eee587-90f2-4293-9bc2-d3d86129191a/full.mp4",
+        username: "michael",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "entre amigas sabe mejor #amigas #porno"
+      },
+      {
+        id: "nova-08",
+        src: "https://www.xxxfollow.com/media/fans/post_public/3771/37716313/823775_fhd.mp4",
+        username: "oblivi0n",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "Anal #anal"
+      },      
+      {
+        id: "nova-09",
+        src: "https://www.xxxfollow.com/media/fans/post_public/3695/36953274/1711657_fhd.mp4",
+        username: "Nova18",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "encanta abrirle las piernas a este niño 😈😈.#chico #milf #mujer"
+      },
+      {
+        id: "nova-10",
+        src: "https://www.xxxfollow.com/media/fans/post_public/4734/47344181/1729380_fhd.mp4",
+        username: "Nova18",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "#pequeña #chica #flaca #tetas"
+      },
+      {
+        id: "nova-11",
+        src: "https://www.xxxfollow.com/media/fans/post_public/4443/44438797/1709911_fhd.mp4",
+        username: "Nova18",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "#rubia #masturbacion #cosplay"
+      },
+      {
+        id: "nova-12",
+        src: "https://www.xxxfollow.com/media/fans/post_public/3165/31654649/1197196_fhd.mp4",
+        username: "Novq18",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "Leche 🔥 #leche #18años #adolecente"
+      },
+      {
+        id: "nova-13",
+        src: "https://www.xxxfollow.com/media/fans/post_public/4323/43238529/1325090_fhd.mp4",
+        username: "Nova18",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "#mama #mami #condom"
+      },
+      {
+        id: "nova-14",
+        src: "https://www.xxxfollow.com/media/fans/post_public/4179/41791007-1/1510318_fhd.mp4",
+        username: "Nova18",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "18 años #joven #tetas #coño #culazo #dedos"
+      },
+      {
+        id: "nova-15",
+        src: "https://cdn.xfree.com/xfree-prod/1/c/4/1c4cdc0f-ebda-492b-8170-25e073a8784f/full.mp4",
+        username: "Nova18",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "uff #mamada"
+      },
+      {
+        id: "nova-16",
+        src: "https://cdn.xfree.com/xfree-prod/f/f/1/ff117dbc-01fa-4304-bc48-17b508d4fd97/full.mp4",
+        username: "Nova18",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "Pajeada en el bus #bus #chica #mamada"
+      },
+      {
+        id: "nova-17",
+        src: "https://www.xxxfollow.com/media/fans/post_public/4084/40849583/1510476_uhd.mp4",
+        username: "Nova18",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "Una gran verga intentando entrar en mi estrecha cuca #cuca #verga"
+      },
+      {
+        id: "nova-18",
+        src: "https://www.xxxfollow.com/media/fans/post_public/3695/36953274/736500.mp4",
+        username: "Nova18",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "te gustaria que colocara  mi enorme trasero en tu cara ? 🥵🔥 #trasero #milf #latina #español"
+      },
+      {
+        id: "nova-19",
+        src: "https://cdn.xfree.com/xfree-prod/1/6/c/16c4a3fd-ef52-474f-b1db-67d78481fa66/full.mp4",
+        username: "Nova18",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "Big-titted Latinas and BBWs are having one hell of a pussy fingering and cock loving foursome fuckfest on a bed. Now that's multi-tasking! #Tetas Grandes#Latina#Dedos#Cuarteto#Joder#Regordeta"
+      },
+      {
+        id: "nova-20",
+        src: "https://cdn.xfree.com/xfree-prod/8/2/1/821612b3-6932-4411-a6d5-a1564098abde/full.mp4",
+        username: "Nova18",
+        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
+        description: "Quieres tocarme papi #Aficionados#Morena#Tatuaje#Gafas#Masturbación#Latina#Solo#Onlyfans#Vertical Porn"
+      },
+    ];
 
-const DATA_VIDEOS = [
-    { id: "vid_01", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xvideos.com/embedframe/opihkhm425e", duracion: "EXCLUSIVO" },
-    
-    { id: "vid_02", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/oocfkkfdacf", duracion: "EXCLUSIVO" },
-    
-    { id: "vid_03", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.pornhub.com/embed/672e8b035c0bd", duracion: "EXCLUSIVO" },
-    
-    { id: "vid_04", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.porn300.com/es/video/sucio-trio-con-pamela-sanchez-y-sara-may/embed/", duracion: "EXCLUSIVO" },
-    
-    { id: "vid_05", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.porn300.com/es/video/lexi-se-da-al-lesbico-en-la-lavanderia/embed/", duracion: "EXCLUSIVO" },
-    
-    { id: "vid_06", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.porn300.com/es/video/mujer-espanola-madura-follada/embed/", duracion: "EXCLUSIVO" },
-    
-    { id: "vid_07", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.pornhub.com/embed/6a2046e73a58d", duracion: "EXCLUSIVO" },
-    
-    { id: "vid_08", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.porn300.com/es/video/dulces-lesbianas-buscan-el-orgasmo-juntas/embed/", duracion: "EXCLUSIVO" },    
-    
-    { id: "vid_09", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.porn300.com/es/video/dulces-lesbianas-comiendo-conos/embed/", duracion: "EXCLUSIVO" },
-    
-    { id: "vid_10", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2Fdrive.google.com%2Ffile%2Fd%2F1wenpfwBQQnzsik1eAYQtjIthEmxDdhIY%2Fview%3Fusp%3Ddrivesdk", duracion: "EXCLUSIVO" },
-    
-    { id: "vid_10", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2Fdrive.google.com%2Ffile%2Fd%2F1O_eKhY6vYZvmj60_g1iBmevz2_UNq8d7%2Fview%3Fusp%3Ddrivesdk", duracion: "EXCLUSIVO" },
-    
-    { id: "vid_10", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.pornhub.com/embed/6a3256612f223", duracion: "EXCLUSIVO" },
-    { id: "vid_11", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/opkdlikc08e", duracion: "EXCLUSIVO" },
-    { id: "vid_12", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/oodmpmp9963", duracion: "EXCLUSIVO" },
-    { id: "vid_13", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/ooekibt3d2f", duracion: "EXCLUSIVO" },
-    { id: "vid_14", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/ucoludv1544", duracion: "EXCLUSIVO" },
-    { id: "vid_15", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/hfbebtdc720", duracion: "EXCLUSIVO" },
-    { id: "vid_16", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/uoeetlb7c8f", duracion: "EXCLUSIVO" },
-    { id: "vid_17", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/kcmvihk194f", duracion: "EXCLUSIVO" },
-    { id: "vid_18", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/ivkckuoa5af", duracion: "EXCLUSIVO" },
-    { id: "vid_19", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/ihvpbibf63b", duracion: "EXCLUSIVO" },
-    { id: "vid_20", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/ubdvvbh0c90", duracion: "EXCLUSIVO" },
-    { id: "vid_21", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/opmfclb6c9b", duracion: "EXCLUSIVO" },
-    { id: "vid_22", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/ootfkimfaaa", duracion: "EXCLUSIVO" },
-    { id: "vid_23", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/kpoahih5b89", duracion: "EXCLUSIVO" },
-    { id: "vid_24", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/uubacki1a76", duracion: "EXCLUSIVO" },
-    { id: "vid_25", titulo: "DE TELEGRAM", canalId: "c_telegram", url: "https://www.xnxx.es/embedframe/oppffdd4cfb", duracion: "EXCLUSIVO" },
-];
-        const FOTOS_ALEATORIAS = [...DATA_FOTOS].sort(() => Math.random() - 0.5);
-const VIDEOS_ALEATORIOS = [...DATA_VIDEOS].sort(() => Math.random() - 0.5);
+    class NovaStorage {
+      constructor() {
+        this.dbName = "NovaPlayerDB";
+        this.db = null;
+      }
 
-let db;
-let listadoFavoritosLocal = [];
-let listadoLikesLocal = [];
-let fotoActual = null;
-let configSandbox = { id: 'sandbox_prefs', scripts: true, sameOrigin: true, popups: false, forms: false, presentation: true };
-
-const SVG_LIKE = `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`;
-const SVG_FAV = `<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>`;
-const SVG_PLAY = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
-
-// === OPTIMIZADOR DE RENDIMIENTO PARA VIDEOS ===
-const iframeObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const iframe = entry.target;
-            if (iframe.dataset.src) {
-                iframe.src = iframe.dataset.src;
-                iframe.removeAttribute('data-src');
+      async init() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(this.dbName, 2);
+          request.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains("likes")) {
+              db.createObjectStore("likes", { keyPath: "id" });
             }
-            observer.unobserve(iframe);
-        }
-    });
-}, { rootMargin: '200px' }); // Carga el iframe 200px antes de que aparezca en pantalla
+            if (!db.objectStoreNames.contains("settings")) {
+              db.createObjectStore("settings", { keyPath: "key" });
+            }
+          };
+          request.onsuccess = (e) => {
+            this.db = e.target.result;
+            resolve();
+          };
+          request.onerror = (e) => reject(e);
+        });
+      }
 
-// === INICIALIZACIÓN ===
-document.addEventListener("DOMContentLoaded", () => {
-    const passGuardada = localStorage.getItem("app_password");
-    const screen = document.getElementById("seguridadScreen");
-    const btn = document.getElementById("btnAccederSeguridad");
-    const input = document.getElementById("inputPass");
+      async setLike(id, liked) {
+        if (!this.db) return;
+        const tx = this.db.transaction("likes", "readwrite");
+        const store = tx.objectStore("likes");
+        store.put({ id: id, liked: liked, timestamp: Date.now() });
+      }
 
-    if (!passGuardada) {
-        document.getElementById("seguridadTitulo").textContent = "Crear Contraseña";
-        btn.textContent = "Guardar Clave";
-        btn.onclick = () => {
-            const val = input.value.trim();
-            if(!val) return mostrarToast("Ingresa algo válido");
-            localStorage.setItem("app_password", val);
-            screen.style.display = "none";
-            mostrarAvisoInfo();
-        };
-    } else {
-        document.getElementById("seguridadTitulo").textContent = "Seguridad Activa";
-        btn.textContent = "Entrar";
-        btn.onclick = () => {
-            if(input.value.trim() === passGuardada) { screen.style.display = "none"; mostrarAvisoInfo(); } 
-            else { mostrarToast("❌ PIN Incorrecto"); input.value = ""; }
-        };
-    }
-    chequearLimiteSolicitudes();
-    vincularMenuSandbox();
-    renderizarListadoCanalesGrid(); 
-});
+      async getLike(id) {
+        if (!this.db) return false;
+        return new Promise((resolve) => {
+          const tx = this.db.transaction("likes", "readonly");
+          const store = tx.objectStore("likes");
+          const req = store.get(id);
+          req.onsuccess = () => resolve(req.result ? req.result.liked : false);
+          req.onerror = () => resolve(false);
+        });
+      }
 
-function mostrarAvisoInfo() {
-    const overlay = document.getElementById('infoModalOverlay');
-    overlay.classList.add('activo');
-    document.getElementById('btnEntendidoModal').onclick = () => { overlay.classList.remove('activo'); setTimeout(() => overlay.style.display = 'none', 300); }
-}
+      async getAllLikes() {
+        if (!this.db) return [];
+        return new Promise((resolve) => {
+          const tx = this.db.transaction("likes", "readonly");
+          const store = tx.objectStore("likes");
+          const req = store.getAll();
+          req.onsuccess = () => {
+            const likedIds = (req.result || []).filter(item => item.liked).map(item => item.id);
+            resolve(likedIds);
+          };
+          req.onerror = () => resolve([]);
+        });
+      }
 
-// === BASE DE DATOS LOCAL ===
-const dbRequest = indexedDB.open('MiGaleriaLocalDB', 3);
-dbRequest.onupgradeneeded = (e) => {
-    let database = e.target.result;
-    if (!database.objectStoreNames.contains('user_likes')) database.createObjectStore('user_likes', { keyPath: 'id' });
-    if (!database.objectStoreNames.contains('user_favorites')) database.createObjectStore('user_favorites', { keyPath: 'id' });
-    if (!database.objectStoreNames.contains('app_settings')) database.createObjectStore('app_settings', { keyPath: 'id' });
-};
-dbRequest.onsuccess = (e) => {
-    db = e.target.result;
-    db.transaction('app_settings').objectStore('app_settings').get('sandbox_prefs').onsuccess = (e_sb) => {
-        if(e_sb.target.result) configSandbox = e_sb.target.result; 
-        aplicarCheckboxSandboxUI();
-        actualizarDatosYRenderizar();
-    };
-};
+      async setSetting(key, value) {
+        if (!this.db) return;
+        const tx = this.db.transaction("settings", "readwrite");
+        const store = tx.objectStore("settings");
+        store.put({ key: key, value: value });
+      }
 
-function guardarDato(almacen, id, activo) {
-    if (!db) return;
-    let tx = db.transaction(almacen, 'readwrite');
-    let store = tx.objectStore(almacen);
-    if (activo) store.put({ id: id }); else store.delete(id);
-    
-    // Actualización silenciosa para favoritos
-    tx.oncomplete = () => { 
-        if(almacen === 'user_favorites') {
-            db.transaction('user_favorites', 'readonly').objectStore('user_favorites').getAll().onsuccess = (ev) => { 
-                listadoFavoritosLocal = ev.target.result.map(item => item.id); 
-                renderizarGridFavoritos(); // Solo reconstruye la vista de favoritos
-            }; 
-        }
-    };
-}
-
-// === SOLUCIÓN BUG LIKES / FAVS (SINCRONIZACIÓN EN TIEMPO REAL) ===
-function alternarInteraccion(tipo, id, elementoBoton) {
-    elementoBoton.classList.toggle(tipo === 'like' ? 'active' : 'fav-active');
-    const estaActivo = elementoBoton.classList.contains(tipo === 'like' ? 'active' : 'fav-active');
-    
-    // Actualizar array en memoria
-    if (tipo === 'like') {
-        if (estaActivo) listadoLikesLocal.push(id); else listadoLikesLocal = listadoLikesLocal.filter(x => x !== id);
-        guardarDato('user_likes', id, estaActivo);
-    } else {
-        if (estaActivo) listadoFavoritosLocal.push(id); else listadoFavoritosLocal = listadoFavoritosLocal.filter(x => x !== id);
-        guardarDato('user_favorites', id, estaActivo);
+      async getSetting(key) {
+        if (!this.db) return null;
+        return new Promise((resolve) => {
+          const tx = this.db.transaction("settings", "readonly");
+          const store = tx.objectStore("settings");
+          const req = store.get(key);
+          req.onsuccess = () => resolve(req.result ? req.result.value : null);
+          req.onerror = () => resolve(null);
+        });
+      }
     }
 
-    // Sincronizar todos los botones idénticos en el DOM (Grid + Modal)
-    document.querySelectorAll(`.btn-${tipo}[data-target-id="${id}"]`).forEach(btn => {
-        if (estaActivo) btn.classList.add(tipo === 'like' ? 'active' : 'fav-active');
-        else btn.classList.remove(tipo === 'like' ? 'active' : 'fav-active');
-    });
-}
+    const novaDB = new NovaStorage();
 
-function actualizarDatosYRenderizar() {
-    if (!db) return;
-    db.transaction('user_favorites', 'readonly').objectStore('user_favorites').getAll().onsuccess = (e) => {
-        listadoFavoritosLocal = e.target.result.map(item => item.id);
-        db.transaction('user_likes', 'readonly').objectStore('user_likes').getAll().onsuccess = (e2) => {
-            listadoLikesLocal = e2.target.result.map(item => item.id);
-            renderizarGridFotos(); 
-            renderizarGridVideos(); 
-            renderizarGridFavoritos();
+    /* GESTOR DE DESCARGAS ROBUSTO (BLOB STREAM DIRECTO) */
+    const downloadManager = {
+      tasks: new Map(),
+
+      startDownload(videoData) {
+        if (this.tasks.has(videoData.id)) {
+          openDownloadModal();
+          return;
+        }
+
+        const controller = new AbortController();
+        const task = {
+          id: videoData.id,
+          username: videoData.username,
+          description: videoData.description,
+          src: videoData.src,
+          progress: 0,
+          status: 'downloading',
+          controller: controller,
+          loaded: 0,
+          total: 0
         };
-    };
-}
 
-// === CONSTRUCCIÓN ELEMENTOS MULTIMEDIA (Alta Velocidad con DocumentFragment) ===
-function crearTarjetaFoto(foto, contenedorDestino) {
-    const esLike = listadoLikesLocal.includes(foto.id);
-    const esFav = listadoFavoritosLocal.includes(foto.id);
-    const canal = CANALES[foto.canalId];
-    
-    const card = document.createElement('div');
-    card.className = 'pin-card skeleton';
-    card.innerHTML = `
-        <img src="${foto.url}">
-        <div class="pin-overlay">
-            <div class="pin-info-row">
-                <span class="pin-title" title="${canal.nombre}">${foto.titulo}</span>
-                <div class="pin-actions">
-                    <button class="btn-glass btn-like ${esLike ? 'active' : ''}" data-target-id="${foto.id}">${SVG_LIKE}</button>
-                    <button class="btn-glass btn-fav ${esFav ? 'fav-active' : ''}" data-target-id="${foto.id}">${SVG_FAV}</button>
-                </div>
+        this.tasks.set(videoData.id, task);
+        this.updateGlobalLauncher();
+        this.renderDownloadList();
+        this.forceDirectBlobDownload(task);
+      },
+
+      async forceDirectBlobDownload(task) {
+        try {
+          task.status = 'downloading';
+          this.updateTaskUI(task);
+
+          const response = await fetch(task.src, { signal: task.controller.signal });
+          if (!response.ok) throw new Error("HTTP error");
+
+          const contentLength = response.headers.get('content-length');
+          task.total = contentLength ? parseInt(contentLength, 10) : 0;
+
+          const reader = response.body.getReader();
+          let receivedLength = 0;
+          let chunks = [];
+
+          while(true) {
+            const {done, value} = await reader.read();
+            if (done) break;
+
+            chunks.push(value);
+            receivedLength += value.length;
+            task.loaded = receivedLength;
+
+            if (task.total > 0) {
+              task.progress = Math.round((receivedLength / task.total) * 100);
+            } else {
+              task.progress = 50; 
+            }
+            this.updateTaskUI(task);
+          }
+
+          const blob = new Blob(chunks, { type: 'video/mp4' });
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = blobUrl;
+          a.download = `${task.username}_${task.id}.mp4`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+
+          task.status = 'completed';
+          task.progress = 100;
+          this.updateTaskUI(task);
+        } catch(e) {
+          if (e.name === 'AbortError') {
+            task.status = 'paused';
+          } else {
+            // Fallback de respaldo alternativo directo
+            const a = document.createElement('a');
+            a.href = task.src;
+            a.download = `${task.username}_${task.id}.mp4`;
+            a.target = "_blank";
+            a.click();
+
+            task.status = 'completed';
+            task.progress = 100;
+          }
+          this.updateTaskUI(task);
+        } finally {
+          this.updateGlobalLauncher();
+        }
+      },
+
+      togglePause(id) {
+        const task = this.tasks.get(id);
+        if (!task) return;
+
+        if (task.status === 'downloading') {
+          task.status = 'paused';
+          if (task.controller) task.controller.abort();
+          this.updateTaskUI(task);
+          this.updateGlobalLauncher();
+        } else if (task.status === 'paused') {
+          task.controller = new AbortController();
+          this.forceDirectBlobDownload(task);
+        }
+      },
+
+      cancelDownload(id) {
+        const task = this.tasks.get(id);
+        if (task) {
+          task.status = 'cancelled';
+          if (task.controller) task.controller.abort();
+          this.tasks.delete(id);
+          this.renderDownloadList();
+          this.updateGlobalLauncher();
+        }
+      },
+
+      updateGlobalLauncher() {
+        const launcher = document.getElementById('dlLauncherBtn');
+        const badge = document.getElementById('dlBadge');
+        const activeTasks = Array.from(this.tasks.values()).filter(t => t.status === 'downloading' || t.status === 'paused');
+
+        if (this.tasks.size > 0) {
+          launcher.classList.add('active');
+          badge.textContent = activeTasks.length;
+          
+          const isAnyDownloading = Array.from(this.tasks.values()).some(t => t.status === 'downloading');
+          launcher.classList.toggle('animating', isAnyDownloading);
+        } else {
+          launcher.classList.remove('active');
+        }
+      },
+
+      escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      },
+
+      renderDownloadList() {
+        const container = document.getElementById('dlListContainer');
+        if (this.tasks.size === 0) {
+          container.innerHTML = `<div style="text-align:center; padding: 30px; color: #666;">No hay descargas activas en este momento</div>`;
+          return;
+        }
+
+        container.innerHTML = Array.from(this.tasks.values()).map(task => `
+          <div class="dl-card" id="dl-card-${task.id}">
+            <video class="dl-card-thumb" src="${task.src}#t=0.5" preload="metadata" muted></video>
+            <div class="dl-card-info">
+              <div class="dl-card-title">${this.escapeHtml(task.username)}</div>
+              <div class="dl-card-desc">${this.escapeHtml(task.description)}</div>
+              <div class="dl-progress-bar-bg">
+                <div class="dl-progress-bar-fill" style="width: ${task.progress}%"></div>
+              </div>
+              <div class="dl-status-text">${this.getStatusLabel(task)}</div>
             </div>
-        </div>`;
-        
-    const img = card.querySelector('img');
-    img.onload = () => { card.classList.remove('skeleton'); img.classList.add('loaded'); };
-    
-    card.onclick = (e) => { 
-        if (e.target.closest('.pin-title')) { e.stopPropagation(); abrirPerfilCanal(foto.canalId); return; } 
-        if (!e.target.closest('.btn-glass')) abrirVistaDetalle(foto); 
+            <div class="dl-card-actions">
+              ${task.status !== 'completed' ? `
+                <button class="dl-btn" onclick="downloadManager.togglePause('${task.id}')">
+                  ${task.status === 'downloading' ? 'Pausar' : 'Reanudar'}
+                </button>
+              ` : ''}
+              <button class="dl-btn cancel" onclick="downloadManager.cancelDownload('${task.id}')">
+                ${task.status === 'completed' ? 'Limpiar' : 'Cancelar'}
+              </button>
+            </div>
+          </div>
+        `).join('');
+      },
+
+      updateTaskUI(task) {
+        const card = document.getElementById(`dl-card-${task.id}`);
+        if (!card) return;
+
+        const fill = card.querySelector('.dl-progress-bar-fill');
+        const statusText = card.querySelector('.dl-status-text');
+        const actions = card.querySelector('.dl-card-actions');
+
+        if (fill) fill.style.width = `${task.progress}%`;
+        if (statusText) statusText.textContent = this.getStatusLabel(task);
+
+        if (actions) {
+          actions.innerHTML = `
+            ${task.status !== 'completed' ? `
+              <button class="dl-btn" onclick="downloadManager.togglePause('${task.id}')">
+                ${task.status === 'downloading' ? 'Pausar' : 'Reanudar'}
+              </button>
+            ` : ''}
+            <button class="dl-btn cancel" onclick="downloadManager.cancelDownload('${task.id}')">
+              ${task.status === 'completed' ? 'Limpiar' : 'Cancelar'}
+            </button>
+          `;
+        }
+      },
+
+      getStatusLabel(task) {
+        switch(task.status) {
+          case 'downloading': return `Descargando... ${task.progress}%`;
+          case 'paused': return `Pausado - ${task.progress}%`;
+          case 'completed': return `¡Descargado exitosamente!`;
+          case 'error': return `Error en descarga directa.`;
+          default: return '';
+        }
+      }
     };
-    
-    card.querySelector('.btn-like').onclick = (e) => { e.stopPropagation(); alternarInteraccion('like', foto.id, e.currentTarget); };
-    card.querySelector('.btn-fav').onclick = (e) => { e.stopPropagation(); alternarInteraccion('fav', foto.id, e.currentTarget); };
-    
-    contenedorDestino.appendChild(card);
-}
 
-function renderizarGridFotos() { 
-    const grid = document.getElementById('galeriaGrid');
-    grid.innerHTML = ''; 
-    const fragment = document.createDocumentFragment();
-    FOTOS_ALEATORIAS.forEach(foto => crearTarjetaFoto(foto, fragment));
-    grid.appendChild(fragment);
-}
+    function openDownloadModal() {
+      downloadManager.renderDownloadList();
+      document.getElementById('dlModalOverlay').classList.add('open');
+    }
 
-function crearTarjetaVideo(vid, contenedorDestino) {
-    const esFav = listadoFavoritosLocal.includes(vid.id);
-    const canal = CANALES[vid.canalId];
-    
-    const card = document.createElement('div');
-    card.className = 'video-card-yt';
-    
-    // Se utiliza data-src en el iframe para que el IntersectionObserver lo cargue sin lag
-    card.innerHTML = `
-        <div class="vid-thumb-container">
-            <div class="vid-blocker-top"></div>
-            <div class="vid-blocker-bottom"></div>
-            <iframe data-src="${vid.url}?autoplay=0&controls=0" loading="lazy"></iframe>
-            <div class="vid-click-overlay"></div>
-            <span class="badge-duration">${vid.duracion}</span>
-            <div class="btn-play-center">${SVG_PLAY}</div>
+    function closeDownloadModal(e) {
+      if (!e || e.target === document.getElementById('dlModalOverlay') || e.target.classList.contains('dl-modal-close')) {
+        document.getElementById('dlModalOverlay').classList.remove('open');
+      }
+    }
+
+    function openSettingsModal() {
+      updateStorageMetricsDisplay();
+      document.getElementById('settingsModalOverlay').classList.add('open');
+    }
+
+    function closeSettingsModal(e) {
+      if (!e || e.target === document.getElementById('settingsModalOverlay') || e.target.classList.contains('settings-modal-close')) {
+        document.getElementById('settingsModalOverlay').classList.remove('open');
+      }
+    }
+
+    async function updateStorageMetricsDisplay() {
+      const sub = document.getElementById('storageUsageSub');
+      if (navigator.storage && navigator.storage.estimate) {
+        const estimate = await navigator.storage.estimate();
+        const usageMB = (estimate.usage / (1024 * 1024)).toFixed(2);
+        const quotaGB = (estimate.quota / (1024 * 1024 * 1024)).toFixed(1);
+        sub.textContent = `${usageMB} MB consumidos (Límite disponible: ~${quotaGB} GB)`;
+      } else {
+        sub.textContent = "Almacenamiento nativo activo";
+      }
+    }
+
+    /* MODAL DE CONFIRMACIÓN CUSTOMIZADO (SISTEMA FLOTANTE CENTRAL) */
+    let customModalCallback = null;
+
+    function openCustomModal({ title, message, iconSvg, confirmText, onConfirm }) {
+      document.getElementById('customModalTitle').textContent = title;
+      document.getElementById('customModalBody').textContent = message;
+      if (iconSvg) document.getElementById('customModalIcon').innerHTML = iconSvg;
+      
+      const confirmBtn = document.getElementById('customModalConfirmBtn');
+      confirmBtn.textContent = confirmText || 'Confirmar';
+      
+      customModalCallback = onConfirm;
+
+      confirmBtn.onclick = () => {
+        if (customModalCallback) customModalCallback();
+        closeCustomModal();
+      };
+
+      document.getElementById('customModalOverlay').classList.add('active');
+    }
+
+    function closeCustomModal() {
+      document.getElementById('customModalOverlay').classList.remove('active');
+      customModalCallback = null;
+    }
+
+    function promptClearCache() {
+      openCustomModal({
+        title: "¿Eliminar Caché?",
+        message: "¿Estás seguro de eliminar la caché? Esta acción liberará memoria temporal borrando archivos multimedia almacenados. Los videos tardarán un instante más en volver a cargar.",
+        iconSvg: `<svg viewBox="0 0 24 24"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/></svg>`,
+        confirmText: "Liberar Ahora",
+        onConfirm: async () => {
+          if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+          }
+          updateStorageMetricsDisplay();
+        }
+      });
+    }
+
+    function promptClearData() {
+      openCustomModal({
+        title: "¿Eliminar Datos del Sistema?",
+        message: "¿Estás seguro de eliminar los datos? Esto borrará de forma permanente tus me gusta guardados, configuraciones del reproductor e historial de la app.",
+        iconSvg: `<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
+        confirmText: "Borrar Todo",
+        onConfirm: async () => {
+          const dbs = await indexedDB.databases();
+          dbs.forEach(db => indexedDB.deleteDatabase(db.name));
+          location.reload();
+        }
+      });
+    }
+
+    let currentDataSaver = 'standard';
+
+    async function setDataSaverMode(mode) {
+      currentDataSaver = mode;
+      await novaDB.setSetting('dataSaverMode', mode);
+
+      document.getElementById('saverStandard').classList.toggle('active', mode === 'standard');
+      document.getElementById('saverExtreme').classList.toggle('active', mode === 'extreme');
+
+      applyDataSaverToActiveVideos();
+    }
+
+    function applyDataSaverToActiveVideos() {
+      const videos = document.querySelectorAll('.video-player');
+      videos.forEach(v => {
+        if (currentDataSaver === 'extreme') {
+          v.playbackRate = 0.75;
+          v.preload = "none";
+        } else {
+          v.playbackRate = 1.0;
+          v.preload = "metadata";
+        }
+      });
+    }
+
+    const SPEEDS = [1, 1.5, 2, 0.5];
+
+    function getFeedList() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetId = urlParams.get('v');
+
+      let feed = [...VIDEO_DATABASE];
+
+      if (targetId) {
+        const targetIndex = feed.findIndex(item => item.id === targetId);
+        if (targetIndex !== -1) {
+          const [targetVideo] = feed.splice(targetIndex, 1);
+          feed = shuffleArray(feed);
+          feed.unshift(targetVideo);
+          return feed;
+        }
+      }
+
+      return shuffleArray(feed);
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function renderFeed() {
+      const appContainer = document.getElementById('appContainer');
+      const feedData = getFeedList();
+
+      appContainer.innerHTML = feedData.map(v => `
+        <section class="feed-item" data-id="${v.id}" data-src="${v.src}">
+          <div class="video-wrapper">
+            <video class="video-player" loop playsinline preload="metadata" src="${v.src}"></video>
+          </div>
+          
+          <div class="state-icon-overlay"></div>
+
+          <div class="ui-layer">
+            <div class="top-bar">
+              <button class="search-trigger" onclick="toggleSearchModal(true)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              </button>
+              <div class="top-tabs">
+                <span class="active">Para ti</span>
+              </div>
+              <div class="top-bar-right">
+                <button class="settings-trigger" onclick="openSettingsModal()" title="Ajustes">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                </button>
+                <button class="seen-trigger" onclick="toggleSeenModal(true)" title="Visto">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="video-info">
+              <div class="username">@${v.username}</div>
+              <div class="description-container">
+                <div class="description">${v.description}</div>
+                <button class="btn-toggle-desc" onclick="toggleDescription(this)">Ver más</button>
+              </div>
+            </div>
+
+            <div class="side-bar">
+              <button class="action-btn btn-like" onclick="toggleLike(this, '${v.id}')">
+                <div class="icon-box">
+                  <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </div>
+              </button>
+
+              <button class="action-btn btn-download" onclick="requestDownload('${v.id}')">
+                <div class="icon-box">
+                  <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                </div>
+              </button>
+
+              <button class="action-btn" onclick="shareVideo('${v.id}')">
+                <div class="icon-box">
+                  <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.70s-.04-.47-.09-.70l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.70L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+                </div>
+              </button>
+
+              <button class="action-btn btn-speed" onclick="changePlaybackSpeed(this)">
+                <div class="icon-box">
+                  <span class="speed-badge">1x</span>
+                </div>
+                <span class="btn-label">Velocidad</span>
+              </button>
+
+              <button class="action-btn" onclick="togglePlayerMode(true)">
+                <div class="icon-box">
+                  <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                </div>
+                <span class="btn-label">Jugador</span>
+              </button>
+            </div>
+
+            <div class="custom-player-bar">
+              <button class="mute-btn" onclick="toggleMute(this)">
+                <svg class="icon-audio" viewBox="0 0 24 24"></svg>
+              </button>
+              
+              <div class="progress-wrapper">
+                <div class="progress-track">
+                  <div class="progress-fill"></div>
+                </div>
+                <input type="range" class="seek-slider" min="0" max="100" value="0" step="0.1" oninput="onSeek(event, this)">
+              </div>
+
+              <div class="time-display">0:00</div>
+            </div>
+
+          </div>
+        </section>
+      `).join('');
+    }
+
+    async function initApp() {
+      await novaDB.init();
+
+      const savedMode = await novaDB.getSetting('dataSaverMode') || 'standard';
+      setDataSaverMode(savedMode);
+
+      renderFeed();
+
+      const container = document.getElementById('appContainer');
+      const feedItems = document.querySelectorAll('.feed-item');
+
+      feedItems.forEach(async (item) => {
+        const id = item.getAttribute('data-id');
+        const isLiked = await novaDB.getLike(id);
+        if (isLiked) {
+          const btnLike = item.querySelector('.btn-like');
+          if (btnLike) btnLike.classList.add('liked');
+        }
+      });
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const video = entry.target.querySelector('video');
+          const id = entry.target.getAttribute('data-id');
+
+          if (entry.isIntersecting) {
+            window.history.replaceState(null, null, `?v=${id}`);
+            
+            if (currentDataSaver === 'extreme') {
+              video.playbackRate = 0.75;
+            }
+
+            requestAnimationFrame(() => {
+              video.play().catch(() => {
+                video.muted = true;
+                video.play();
+              });
+            });
+            syncMuteIcon(entry.target);
+          } else {
+            video.pause();
+            video.currentTime = 0;
+          }
+        });
+      }, { root: container, threshold: 0.6 });
+
+      feedItems.forEach(item => {
+        observer.observe(item);
+
+        const video = item.querySelector('video');
+        const progressFill = item.querySelector('.progress-fill');
+        const slider = item.querySelector('.seek-slider');
+        const timeDisplay = item.querySelector('.time-display');
+        const desc = item.querySelector('.description');
+        const btnToggleDesc = item.querySelector('.btn-toggle-desc');
+
+        if (desc.scrollHeight > desc.clientHeight) {
+          btnToggleDesc.style.display = 'inline-block';
+        }
+
+        let isSeeking = false;
+
+        slider.addEventListener('mousedown', () => isSeeking = true);
+        slider.addEventListener('touchstart', () => isSeeking = true);
+        slider.addEventListener('mouseup', () => isSeeking = false);
+        slider.addEventListener('touchend', () => isSeeking = false);
+
+        video.addEventListener('timeupdate', () => {
+          if (video.duration && !isSeeking) {
+            const progress = (video.currentTime / video.duration) * 100;
+            progressFill.style.width = `${progress}%`;
+            slider.value = progress;
+            timeDisplay.textContent = formatTime(video.duration - video.currentTime);
+          }
+        });
+
+        video.addEventListener('loadedmetadata', () => {
+          syncMuteIcon(item);
+        });
+
+        let clickTimer = null;
+        let clickCount = 0;
+
+        item.addEventListener('click', (e) => {
+          if (e.target.closest('.side-bar') || e.target.closest('.custom-player-bar') || e.target.closest('.top-bar')) {
+            return;
+          }
+
+          if (document.body.classList.contains('player-mode')) {
+            togglePlayerMode(false);
+            return;
+          }
+
+          clickCount++;
+
+          if (clickCount === 1) {
+            clickTimer = setTimeout(() => {
+              if (video.paused) {
+                video.play();
+                showOverlayIcon(item, 'play');
+              } else {
+                video.pause();
+                showOverlayIcon(item, 'pause');
+              }
+              clickCount = 0;
+            }, 260);
+          } else if (clickCount >= 2) {
+            clearTimeout(clickTimer);
+            clickCount = 0;
+
+            spawnFloatingHeart(e.clientX, e.clientY, item);
+
+            const likeBtn = item.querySelector('.btn-like');
+            if (!likeBtn.classList.contains('liked')) {
+              const id = item.getAttribute('data-id');
+              toggleLike(likeBtn, id);
+            }
+          }
+        });
+      });
+    }
+
+    function changePlaybackSpeed(btn) {
+      const item = btn.closest('.feed-item');
+      const video = item.querySelector('video');
+      const badge = btn.querySelector('.speed-badge');
+
+      let currentSpeed = video.playbackRate;
+      let currentIndex = SPEEDS.indexOf(currentSpeed);
+      
+      if (currentIndex === -1) currentIndex = 0;
+      
+      const nextIndex = (currentIndex + 1) % SPEEDS.length;
+      const newSpeed = SPEEDS[nextIndex];
+
+      video.playbackRate = newSpeed;
+      badge.textContent = `${newSpeed}x`;
+    }
+
+    function requestDownload(videoId) {
+      const videoData = VIDEO_DATABASE.find(v => v.id === videoId);
+      if (videoData) {
+        downloadManager.startDownload(videoData);
+      }
+    }
+
+    function showOverlayIcon(item, state) {
+      const overlay = item.querySelector('.state-icon-overlay');
+      const iconPlay = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+      const iconPause = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+
+      overlay.innerHTML = state === 'play' ? iconPlay : iconPause;
+      overlay.classList.add('active');
+
+      setTimeout(() => {
+        overlay.classList.remove('active');
+      }, 500);
+    }
+
+    function syncMuteIcon(item) {
+      const video = item.querySelector('video');
+      const svg = item.querySelector('.icon-audio');
+      if (!svg) return;
+
+      if (video.muted) {
+        svg.innerHTML = `<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>`;
+      } else {
+        svg.innerHTML = `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>`;
+      }
+    }
+
+    function toggleMute(btn) {
+      const item = btn.closest('.feed-item');
+      const video = item.querySelector('video');
+      video.muted = !video.muted;
+      syncMuteIcon(item);
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function onSeek(event, slider) {
+      const item = slider.closest('.feed-item');
+      const video = item.querySelector('video');
+      const progressFill = item.querySelector('.progress-fill');
+      const timeDisplay = item.querySelector('.time-display');
+
+      const targetTime = (slider.value / 100) * video.duration;
+      progressFill.style.width = `${slider.value}%`;
+      timeDisplay.textContent = formatTime(video.duration - targetTime);
+
+      requestAnimationFrame(() => {
+        if ('fastSeek' in video) {
+          video.fastSeek(targetTime);
+        } else {
+          video.currentTime = targetTime;
+        }
+      });
+    }
+
+    async function toggleLike(btn, id) {
+      btn.classList.toggle('liked');
+      const isLiked = btn.classList.contains('liked');
+      await novaDB.setLike(id, isLiked);
+      if (navigator.vibrate) navigator.vibrate(40);
+    }
+
+    function shareVideo(id) {
+      const shareUrl = `${window.location.origin}${window.location.pathname}?v=${id}`;
+      if (navigator.share) {
+        navigator.share({ title: 'NOVA Video', url: shareUrl }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(shareUrl);
+        alert('Enlace copiado al portapapeles');
+      }
+    }
+
+    function spawnFloatingHeart(x, y, parent) {
+      const heart = document.createElement('div');
+      heart.className = 'floating-heart';
+      heart.style.left = `${x}px`;
+      heart.style.top = `${y}px`;
+      heart.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+      
+      parent.appendChild(heart);
+      setTimeout(() => heart.remove(), 800);
+    }
+
+    function togglePlayerMode(enable) {
+      document.body.classList.toggle('player-mode', enable);
+    }
+
+    function toggleDescription(btn) {
+      const desc = btn.previousElementSibling;
+      desc.classList.toggle('expanded');
+      btn.textContent = desc.classList.contains('expanded') ? 'Ver menos' : 'Ver más';
+    }
+
+    function toggleSearchModal(show) {
+      const modal = document.getElementById('searchModal');
+      modal.classList.toggle('active', show);
+      if (show) {
+        document.getElementById('searchInput').focus();
+        handleSearch();
+      }
+    }
+
+    async function toggleSeenModal(show) {
+      const modal = document.getElementById('seenModal');
+      modal.classList.toggle('active', show);
+      if (show) {
+        await renderSeenVideos();
+      }
+    }
+
+    function handleSearch() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      const resultsContainer = document.getElementById('searchResults');
+      resultsContainer.innerHTML = '';
+
+      const itemsToRender = query === '' 
+        ? VIDEO_DATABASE 
+        : VIDEO_DATABASE.filter(v => {
+            const desc = v.description.toLowerCase();
+            const user = v.username.toLowerCase();
+            return desc.includes(query) || user.includes(query);
+          });
+
+      if (itemsToRender.length === 0) {
+        resultsContainer.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #666; padding: 40px 0;">No se encontraron resultados</div>`;
+        return;
+      }
+
+      itemsToRender.forEach((v) => {
+        const card = createGridCard(v);
+        resultsContainer.appendChild(card);
+      });
+    }
+
+    async function renderSeenVideos() {
+      const resultsContainer = document.getElementById('seenResults');
+      resultsContainer.innerHTML = '';
+      
+      const likedIds = await novaDB.getAllLikes();
+      const likedVideos = VIDEO_DATABASE.filter(v => likedIds.includes(v.id));
+
+      if (likedVideos.length === 0) {
+        resultsContainer.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #666; padding: 40px 0;">Aún no le has dado Like a ningún video</div>`;
+        return;
+      }
+
+      likedVideos.forEach((v) => {
+        const card = createGridCard(v, () => toggleSeenModal(false), true);
+        resultsContainer.appendChild(card);
+      });
+    }
+
+    async function removeLikeFromSeen(event, id) {
+      event.stopPropagation();
+      await novaDB.setLike(id, false);
+
+      const feedItem = document.querySelector(`.feed-item[data-id="${id}"]`);
+      if (feedItem) {
+        const likeBtn = feedItem.querySelector('.btn-like');
+        if (likeBtn) likeBtn.classList.remove('liked');
+      }
+
+      await renderSeenVideos();
+    }
+
+    function createGridCard(v, onCardClick = null, showUnlikeBtn = false) {
+      const card = document.createElement('div');
+      card.className = 'tt-card';
+      card.onclick = () => {
+        if (onCardClick) onCardClick();
+        toggleSearchModal(false);
+        const target = document.querySelector(`.feed-item[data-id="${v.id}"]`);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      };
+
+      card.innerHTML = `
+        <div class="tt-thumb-box">
+          <video src="${v.src}#t=0.5" preload="metadata" muted></video>
         </div>
-        <div class="vid-info-container">
-            <div class="vid-avatar"><img src="${canal.logo}"></div>
-            <div class="vid-text-block">
-                <div class="vid-title">${vid.titulo}</div>
-                <div class="vid-channel">${canal.nombre}</div>
-            </div>
-            <div class="vid-actions-block">
-                <button class="btn-glass btn-fav ${esFav ? 'fav-active' : ''}" data-target-id="${vid.id}">${SVG_FAV}</button>
-            </div>
-        </div>`;
-        
-    // Observar el iframe para cargarlo de forma diferida
-    iframeObserver.observe(card.querySelector('iframe'));
-        
-    card.querySelector('.vid-click-overlay').onclick = () => ejecutarVideoFullscreen(vid.url);
-    card.querySelector('.vid-avatar').onclick = (e) => { e.stopPropagation(); abrirPerfilCanal(vid.canalId); };
-    card.querySelector('.vid-channel').onclick = (e) => { e.stopPropagation(); abrirPerfilCanal(vid.canalId); };
-    card.querySelector('.btn-fav').onclick = (e) => { e.stopPropagation(); alternarInteraccion('fav', vid.id, e.currentTarget); };
-    
-    contenedorDestino.appendChild(card);
-}
-
-function renderizarGridVideos() { 
-    const grid = document.getElementById('videosGrid');
-    grid.innerHTML = ''; 
-    const fragment = document.createDocumentFragment();
-    VIDEOS_ALEATORIOS.forEach(vid => crearTarjetaVideo(vid, fragment));
-    grid.appendChild(fragment);
-}
-
-// === LISTA DE CANALES Y PERFIL ===
-function renderizarListadoCanalesGrid() {
-    const grid = document.getElementById('canalesListadoGrid');
-    grid.innerHTML = '';
-    const fragment = document.createDocumentFragment();
-    for (const [id, canal] of Object.entries(CANALES)) {
-        const card = document.createElement('div');
-        card.className = 'canal-card-explore';
-        card.innerHTML = `
-            <img class="canal-card-bg" src="${canal.banner}" alt="">
-            <div class="canal-card-overlay">
-                <img class="canal-explore-logo" src="${canal.logo}" alt="">
-                <div class="canal-explore-info">
-                    <div class="canal-explore-titulo">${canal.nombre}</div>
-                    <div class="canal-explore-desc">${canal.desc}</div>
-                </div>
-            </div>
-        `;
-        card.onclick = () => abrirPerfilCanal(id);
-        fragment.appendChild(card);
-    }
-    grid.appendChild(fragment);
-}
-
-function abrirPerfilCanal(canalId) {
-    const canal = CANALES[canalId];
-    if(!canal) return;
-    document.querySelectorAll('.seccion-app').forEach(s => s.classList.remove('activa'));
-    document.getElementById('mainHeader').style.display = 'none';
-    document.getElementById('seccionCanal').classList.add('activa');
-    if(document.getElementById('vistaDetalle').classList.contains('activa')) { document.getElementById('btnCerrarDetalle').click(); }
-
-    document.getElementById('canalBannerSrc').src = canal.banner;
-    document.getElementById('canalLogoSrc').src = canal.logo;
-    document.getElementById('canalNombreTxt').textContent = canal.nombre;
-    document.getElementById('canalStatsTxt').textContent = canal.desc;
-
-    const canalFotos = DATA_FOTOS.filter(f => f.canalId === canalId);
-    const canalVideos = DATA_VIDEOS.filter(v => v.canalId === canalId);
-
-    const gridF = document.getElementById('canalFotosGrid');
-    const gridV = document.getElementById('canalVideosGrid');
-    gridF.innerHTML = ''; gridV.innerHTML = '';
-
-    const fragmentF = document.createDocumentFragment();
-    const fragmentV = document.createDocumentFragment();
-    
-    canalFotos.forEach(f => crearTarjetaFoto(f, fragmentF));
-    canalVideos.forEach(v => crearTarjetaVideo(v, fragmentV));
-    
-    gridF.appendChild(fragmentF);
-    gridV.appendChild(fragmentV);
-
-    activarTabCanal('tabCanalFotos', 'canalFotosGrid', canalFotos.length);
-}
-
-document.getElementById('btnVolverCanal').onclick = () => {
-    document.getElementById('seccionCanal').classList.remove('activa');
-    document.getElementById('mainHeader').style.display = 'flex';
-    const activeNav = document.querySelector('.nav-item.active').id.replace('nav', 'seccion');
-    document.getElementById(activeNav).classList.add('activa');
-};
-
-function activarTabCanal(tabId, gridId, cantidadItems) {
-    document.querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.canal-grid-container').forEach(c => c.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    if(cantidadItems === 0) { document.getElementById('canalVacioMsj').style.display = 'block'; document.getElementById(gridId).classList.remove('active'); } 
-    else { document.getElementById('canalVacioMsj').style.display = 'none'; document.getElementById(gridId).classList.add('active'); }
-}
-
-document.getElementById('tabCanalFotos').onclick = () => { const qty = document.getElementById('canalFotosGrid').childElementCount; activarTabCanal('tabCanalFotos', 'canalFotosGrid', qty); };
-document.getElementById('tabCanalVideos').onclick = () => { const qty = document.getElementById('canalVideosGrid').childElementCount; activarTabCanal('tabCanalVideos', 'canalVideosGrid', qty); };
-
-// === SANDBOX Y REPRODUCTOR ===
-function obtenerStringSandbox() {
-    let s = [];
-    if(configSandbox.scripts) s.push('allow-scripts');
-    if(configSandbox.sameOrigin) s.push('allow-same-origin');
-    if(configSandbox.popups) s.push('allow-popups');
-    if(configSandbox.forms) s.push('allow-forms');
-    if(configSandbox.presentation) s.push('allow-presentation');
-    return s.join(' ');
-}
-function aplicarCheckboxSandboxUI() { document.getElementById('chkScripts').checked = configSandbox.scripts; document.getElementById('chkSameOrigin').checked = configSandbox.sameOrigin; document.getElementById('chkPopups').checked = configSandbox.popups; document.getElementById('chkForms').checked = configSandbox.forms; document.getElementById('chkPresentation').checked = configSandbox.presentation; }
-function vincularMenuSandbox() {
-    document.getElementById('btnSandboxMenu').onclick = () => document.getElementById('sandboxPanel').classList.toggle('active');
-    ['chkScripts', 'chkSameOrigin', 'chkPopups', 'chkForms', 'chkPresentation'].forEach(id => {
-        document.getElementById(id).onchange = (e) => {
-            const key = id.replace('chk', ''); const kLower = key.charAt(0).toLowerCase() + key.slice(1);
-            configSandbox[kLower] = e.target.checked;
-            if(db) { let tx = db.transaction('app_settings', 'readwrite'); tx.objectStore('app_settings').put(configSandbox); }
-            mostrarToast("Sandbox actualizado.");
-        };
-    });
-}
-function ejecutarVideoFullscreen(urlLimpia) {
-    const contenedor = document.getElementById('videoFullscreenContainer'); const iframe = document.getElementById('fullscreenIframe');
-    document.getElementById('bottomNav').style.display = "none"; contenedor.style.display = "block";
-    iframe.sandbox = obtenerStringSandbox(); const union = urlLimpia.includes('?') ? '&' : '?'; iframe.src = `${urlLimpia}${union}autoplay=1&controls=1`;
-    if (contenedor.requestFullscreen) contenedor.requestFullscreen(); else if (contenedor.webkitRequestFullscreen) contenedor.webkitRequestFullscreen();
-}
-document.getElementById('btnCloseFs').onclick = () => {
-    if(document.fullscreenElement) document.exitFullscreen(); else if(document.webkitFullscreenElement) document.webkitExitFullscreen();
-    document.getElementById('fullscreenIframe').src = ""; document.getElementById('videoFullscreenContainer').style.display = "none"; document.getElementById('bottomNav').style.display = "flex";
-};
-
-// === COMUNICACIONES TELEGRAM / MAIL ===
-function getFechaHoy() { return new Date().toISOString().split('T')[0]; }
-function chequearLimiteSolicitudes() {
-    const registros = JSON.parse(localStorage.getItem("solicitudes_logs") || "{}");
-    if(registros[getFechaHoy()] >= 2) { document.getElementById('btnEnviarForm').disabled = true; document.getElementById('alertaLimite').style.display = "block"; return false; }
-    return true;
-}
-document.getElementById('formSolicitud').onsubmit = function(e) {
-    e.preventDefault(); if(!chequearLimiteSolicitudes()) return;
-    const correoAdmin = "xplaymovies2024@gmail.com"; 
-    const n = document.getElementById('solNombre').value, t = document.getElementById('solTipo').value, d = document.getElementById('solDetalle').value;
-    window.location.href = `mailto:${correoAdmin}?subject=${encodeURIComponent(`Pedido: ${t}`)}&body=${encodeURIComponent(`Alias: ${n}\nTipo: ${t}\nDetalles: ${d}`)}`;
-    const reg = JSON.parse(localStorage.getItem("solicitudes_logs") || "{}"); reg[getFechaHoy()] = (reg[getFechaHoy()] || 0) + 1; localStorage.setItem("solicitudes_logs", JSON.stringify(reg));
-    document.getElementById('formSolicitud').reset(); chequearLimiteSolicitudes();
-};
-
-const usuarioTelegram = "TuUsuarioTelegram"; // <-- Reemplaza con tu alias
-document.getElementById('btnSolicitarCanal').onclick = () => { window.open(`https://t.me/${usuarioTelegram}?text=${encodeURIComponent("Hola! Vengo de Mi Galería Pro. Me gustaría solicitar permisos para crear y gestionar mi propio Canal de contenido.")}`, '_blank'); };
-document.getElementById('btnApoyoDev').onclick = () => { window.open(`https://t.me/${usuarioTelegram}?text=${encodeURIComponent("Hola Dev! Excelente trabajo con Mi Galería Pro. Vengo desde la pestaña de Apoyo.")}`, '_blank'); };
-
-// === FAVORITOS ===
-function renderizarGridFavoritos() {
-    const fGrid = document.getElementById('favsFotosGrid'), vGrid = document.getElementById('favsVideosGrid');
-    const tFotos = document.getElementById('txtFavsFotos'), tVideos = document.getElementById('txtFavsVideos'), vVacio = document.getElementById('favsVacio');
-    fGrid.innerHTML = ''; vGrid.innerHTML = '';
-    const fFav = DATA_FOTOS.filter(f => listadoFavoritosLocal.includes(f.id)), vFav = DATA_VIDEOS.filter(v => listadoFavoritosLocal.includes(v.id));
-    
-    if(fFav.length === 0 && vFav.length === 0) { tFotos.style.display = "none"; tVideos.style.display = "none"; vVacio.style.display = "block"; return; } else { vVacio.style.display = "none"; }
-    
-    if(fFav.length > 0) { 
-        tFotos.style.display = "block"; 
-        const fragmentF = document.createDocumentFragment();
-        fFav.forEach(foto => crearTarjetaFoto(foto, fragmentF)); 
-        fGrid.appendChild(fragmentF);
-    } else { tFotos.style.display = "none"; }
-    
-    if(vFav.length > 0) { 
-        tVideos.style.display = "block"; 
-        const fragmentV = document.createDocumentFragment();
-        vFav.forEach(vid => crearTarjetaVideo(vid, fragmentV)); 
-        vGrid.appendChild(fragmentV);
-    } else { tVideos.style.display = "none"; }
-}
-
-// === VISTA DETALLE Y OPCIONES EXTRAS ===
-function abrirVistaDetalle(foto) {
-    fotoActual = foto; const canal = CANALES[foto.canalId];
-    document.getElementById('imgDetalleSrc').src = foto.url; document.getElementById('pinTituloReal').textContent = foto.titulo; document.getElementById('pinNombreCanal').textContent = canal.nombre; document.getElementById('autorAvatarImg').src = canal.logo;
-    document.getElementById('btnIrAlCanalDetalle').onclick = () => abrirPerfilCanal(foto.canalId);
-    document.getElementById('bottomNav').style.display = 'none';
-    
-    const esLike = listadoLikesLocal.includes(foto.id);
-    const esFav = listadoFavoritosLocal.includes(foto.id);
-
-    // Reasignamos los botones de acciones del modal inyectando el ID para que la función alternarInteraccion lo detecte
-    const actionsContenedor = document.getElementById('vistaDetalle').querySelector('.pin-actions') || document.getElementById('vistaDetalle'); // Ajusta el selector si tienes un contenedor específico en tu HTML
-    
-    // Si los botones están sueltos en el modal, les pasamos el nuevo data-target-id
-    const btnLikeDetalle = document.getElementById('btnLikeDetalleModal'); 
-    const btnFavDetalle = document.getElementById('btnFavDetalleModal');
-    
-    if(btnLikeDetalle) {
-        btnLikeDetalle.className = `btn-glass btn-like ${esLike ? 'active' : ''}`;
-        btnLikeDetalle.setAttribute('data-target-id', foto.id);
-        btnLikeDetalle.onclick = (e) => alternarInteraccion('like', foto.id, e.currentTarget);
-    }
-    if(btnFavDetalle) {
-        btnFavDetalle.className = `btn-glass btn-fav ${esFav ? 'fav-active' : ''}`;
-        btnFavDetalle.setAttribute('data-target-id', foto.id);
-        btnFavDetalle.onclick = (e) => alternarInteraccion('fav', foto.id, e.currentTarget);
+        <div class="tt-card-info">
+          <div class="tt-card-desc-box">${downloadManager.escapeHtml(v.description)}</div>
+          <div class="tt-card-footer">
+            ${showUnlikeBtn ? `
+              <button class="tt-unlike-btn" onclick="removeLikeFromSeen(event, '${v.id}')">
+                Quitar Like
+              </button>
+            ` : '<span></span>'}
+            <button class="tt-share-btn" onclick="event.stopPropagation(); shareVideo('${v.id}')">
+              <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.70s-.04-.47-.09-.70l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.70L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+            </button>
+          </div>
+        </div>
+      `;
+      return card;
     }
 
-    const gridExplorar = document.getElementById('galeriaExplorar');
-    gridExplorar.innerHTML = ''; 
-    const fragment = document.createDocumentFragment();
-    DATA_FOTOS.filter(f => f.id !== fotoActual.id).sort(() => Math.random() - 0.5).slice(0, 6).forEach(f => crearTarjetaFoto(f, fragment));
-    gridExplorar.appendChild(fragment);
-    
-    document.getElementById('vistaDetalle').classList.add('activa');
-}
-
-document.getElementById('btnCerrarDetalle').onclick = () => { document.getElementById('vistaDetalle').classList.remove('activa'); document.getElementById('bottomNav').style.display = 'flex'; };
-document.getElementById('btnCompartirPin').onclick = async () => { if(!fotoActual) return; if (navigator.share) { try { await navigator.share({ title: fotoActual.titulo, text: "Mira esto!", url: fotoActual.url }); mostrarToast("¡Compartido!"); } catch(e) {} } else { navigator.clipboard.writeText(fotoActual.url); mostrarToast("Enlace copiado"); } };
-
-const overlay = document.getElementById('sheetOverlay'), sheet = document.getElementById('bottomSheetOpciones');
-document.getElementById('btnMenuOpciones').onclick = () => { overlay.classList.add('activo'); sheet.classList.add('activo'); };
-overlay.onclick = () => { overlay.classList.remove('activo'); sheet.classList.remove('activo'); };
-document.getElementById('btnCopiarEnlace').onclick = () => { if(!fotoActual) return; navigator.clipboard.writeText(fotoActual.url).then(() => { mostrarToast("Enlace copiado"); overlay.click(); }); };
-document.getElementById('btnPantallaCompleta').onclick = () => { if(!fotoActual) return; const img = document.getElementById('imgDetalleSrc'); if (img.requestFullscreen) { img.requestFullscreen(); } else if (img.webkitRequestFullscreen) { img.webkitRequestFullscreen(); } overlay.click(); };
-
-// NAVEGACIÓN
-function cambiarPestaña(btnId, secId) {
-    document.getElementById('mainHeader').style.display = 'flex'; 
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.seccion-app').forEach(s => s.classList.remove('activa'));
-    document.getElementById(btnId).classList.add('active');
-    document.getElementById(secId).classList.add('activa');
-}
-document.getElementById('navHome').onclick = () => cambiarPestaña('navHome', 'seccionHome');
-document.getElementById('navVideos').onclick = () => cambiarPestaña('navVideos', 'seccionVideos');
-document.getElementById('navCanalesList').onclick = () => cambiarPestaña('navCanalesList', 'seccionCanalesList');
-document.getElementById('navFavs').onclick = () => cambiarPestaña('navFavs', 'seccionFavs');
-document.getElementById('navSolicitar').onclick = () => cambiarPestaña('navSolicitar', 'seccionSolicitar');
-document.getElementById('navApoyo').onclick = () => cambiarPestaña('navApoyo', 'seccionApoyo');
-
-function mostrarToast(m) { const t = document.getElementById('appToast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
-    </script>
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
 </body>
 </html>
