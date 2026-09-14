@@ -41,7 +41,7 @@
       background-color: var(--bg);
       color: var(--text);
       overflow: hidden;
-      position: fixed; /* Evita rebotes de scroll en móviles */
+      position: fixed;
     }
 
     body {
@@ -50,7 +50,6 @@
       align-items: center;
     }
 
-    /* Layout Responsivo Universal */
     .chat-app {
       width: 100%;
       height: 100%;
@@ -71,7 +70,6 @@
       }
     }
 
-    /* Header Adaptable */
     .chat-header {
       padding: calc(10px + var(--sat)) 14px 10px 14px;
       background: rgba(13, 19, 31, 0.92);
@@ -171,7 +169,6 @@
     }
     .icon-btn-settings:active { transform: scale(0.95); }
 
-    /* Viewport de Mensajes */
     .messages-viewport {
       flex: 1;
       padding: 14px 12px;
@@ -218,7 +215,6 @@
     .msg-bubble-wrapper { 
       position: relative; 
       width: 100%; 
-      cursor: pointer; 
     }
 
     .msg-bubble {
@@ -243,7 +239,6 @@
       border: 1px solid var(--border);
     }
 
-    /* Estilos para Imagen enviada en el chat */
     .msg-img-thumb {
       max-width: 250px;
       max-height: 180px;
@@ -262,7 +257,6 @@
       transform: scale(1.01);
     }
 
-    /* Cita de Respuesta */
     .reply-quote {
       background: rgba(0, 0, 0, 0.25);
       border-left: 3px solid var(--accent);
@@ -274,7 +268,6 @@
     .reply-quote-author { font-weight: 700; color: var(--accent); margin-bottom: 2px; }
     .reply-quote-text { color: rgba(255, 255, 255, 0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Metadata */
     .msg-meta {
       display: flex;
       align-items: center;
@@ -307,11 +300,13 @@
       padding: 2px;
     }
 
-    /* Selector de Reacciones */
+    /* Barra de Reacciones Quick UI */
     .reaction-trigger-zone {
       position: absolute;
-      top: -32px;
-      display: none;
+      top: -34px;
+      display: flex;
+      opacity: 0;
+      pointer-events: none;
       background: #151d2a;
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -319,12 +314,16 @@
       gap: 6px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.6);
       z-index: 10;
+      transition: opacity 0.15s ease;
     }
 
     .message-group.own .reaction-trigger-zone { right: 0; }
     .message-group.other .reaction-trigger-zone { left: 0; }
-    .msg-bubble-wrapper:hover .reaction-trigger-zone,
-    .msg-bubble-wrapper:active .reaction-trigger-zone { display: flex; }
+    
+    .msg-bubble-wrapper.show-reactions .reaction-trigger-zone {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
     .react-opt { cursor: pointer; font-size: 1.05rem; transition: transform 0.1s ease; }
     .react-opt:active { transform: scale(1.3); }
@@ -344,7 +343,6 @@
       user-select: none;
     }
 
-    /* Preview de Respuesta */
     .reply-preview-bar {
       background: rgba(21, 29, 45, 0.95);
       border-top: 1px solid var(--border);
@@ -359,7 +357,6 @@
     .reply-preview-title { font-weight: 700; color: var(--accent); }
     .reply-preview-text { color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Footer Adaptable */
     .chat-footer {
       padding: 8px 10px calc(8px + var(--sab)) 10px;
       background: rgba(13, 19, 31, 0.95);
@@ -419,7 +416,6 @@
       color: white; 
     }
 
-    /* Paneles Flotantes Adaptables */
     .emoji-picker-panel, .settings-panel {
       position: absolute;
       bottom: calc(60px + var(--sab));
@@ -481,7 +477,6 @@
       font-size: 0.82rem;
     }
 
-    /* Modal Visor Pantalla Completa */
     .image-modal {
       display: none;
       position: fixed;
@@ -576,7 +571,6 @@
     </div>
   </div>
 
-  <!-- Panel Ajustes -->
   <div class="settings-panel" id="settingsPanel">
     <div class="settings-title" style="padding:0; border:none; color:var(--text); font-size:0.85rem;">Personalización</div>
     <div class="field-group">
@@ -596,10 +590,8 @@
     <button class="action-btn send-btn" id="saveSettingsBtn" style="width: 100%; border-radius: 8px; height: 34px; font-size: 0.78rem; font-weight: 600;">Guardar Cambios</button>
   </div>
 
-  <!-- Viewport Mensajes -->
   <div class="messages-viewport" id="viewport"></div>
 
-  <!-- Banner Respuesta Activa -->
   <div class="reply-preview-bar" id="replyBar">
     <div class="reply-preview-info">
       <div class="reply-preview-title" id="replyAuthor">Respondiendo</div>
@@ -608,13 +600,11 @@
     <button class="icon-btn-settings" id="cancelReplyBtn" style="width:26px; height:26px; border:none;"><iconify-icon icon="solar:close-circle-bold"></iconify-icon></button>
   </div>
 
-  <!-- Emoji Picker -->
   <div class="emoji-picker-panel" id="emojiPicker">
     <div class="emoji-picker-header">EMOJIS RÁPIDOS</div>
     <div class="emoji-grid" id="emojiGrid"></div>
   </div>
 
-  <!-- Footer Input -->
   <div class="chat-footer">
     <form class="input-wrapper" id="chatForm">
       <input type="file" id="imageInput" accept="image/*" style="display: none;">
@@ -635,7 +625,6 @@
   </div>
 </div>
 
-<!-- Modal Pantalla Completa (Visor) -->
 <div id="imageModal" class="image-modal">
   <button class="modal-close-btn" id="closeModalBtn">&times;</button>
   <img id="modalImage" class="image-modal-content" src="" alt="Vista Previa">
@@ -674,12 +663,14 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   
-  // 3 Horas Exactas de Expiración (10,800,000 ms)
-  const EXPIRATION_MS = 3 * 60 * 60 * 1000;
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+  // Expiraciones y Constantes
+  const TEXT_EXPIRATION_MS = 48 * 60 * 60 * 1000; // 48 Horas para Textos/Emojis/Reacciones
+  const IMAGE_EXPIRATION_MS = 3 * 60 * 60 * 1000;  // 3 Horas para Imágenes
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;           // 5 MB Max
+  const MAX_IMAGES_PER_DAY = 3;
 
   let activeReply = null;
-  
+
   function setupIdentity() {
     let saved = localStorage.getItem('nova_user');
     if (!saved) {
@@ -702,7 +693,6 @@
   }
   applyUserConfig();
 
-  // Sonido de Envío Optimizado
   function playPopSound() {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -720,7 +710,7 @@
     } catch (e) {}
   }
 
-  // Auto-Limpieza en Servidor (Borra de Firebase lo mayor a 3 Horas)
+  // Verificación y Limpieza de Expiración en Servidor Firebase
   async function cleanExpiredServerData() {
     try {
       const snapshot = await get(messagesRef);
@@ -728,7 +718,9 @@
         const now = Date.now();
         const data = snapshot.val();
         Object.keys(data).forEach(key => {
-          if (now - data[key].timestamp >= EXPIRATION_MS) {
+          const item = data[key];
+          const timeLimit = item.image ? IMAGE_EXPIRATION_MS : TEXT_EXPIRATION_MS;
+          if (now - item.timestamp >= timeLimit) {
             remove(ref(db, `global_chat/${key}`));
           }
         });
@@ -738,7 +730,20 @@
     }
   }
   cleanExpiredServerData();
-  setInterval(cleanExpiredServerData, 60000); // Revisión automática cada minuto
+  setInterval(cleanExpiredServerData, 60000);
+
+  // Control Diario de Imágenes Enviadas
+  function getImageUploadCountToday() {
+    const today = new Date().toISOString().slice(0, 10);
+    const tracking = JSON.parse(localStorage.getItem('nova_img_tracker') || '{}');
+    return tracking.date === today ? tracking.count : 0;
+  }
+
+  function incrementImageUploadCount() {
+    const today = new Date().toISOString().slice(0, 10);
+    const count = getImageUploadCountToday() + 1;
+    localStorage.setItem('nova_img_tracker', JSON.stringify({ date: today, count }));
+  }
 
   // Ajustes
   const settingsPanel = document.getElementById('settingsPanel');
@@ -771,10 +776,10 @@
     const item = document.createElement('div');
     item.className = 'emoji-grid-item';
     item.textContent = emoji;
-    item.onclick = () => {
+    item.onclick = (e) => {
+      e.stopPropagation();
       msgInput.value += emoji;
       updateCounter();
-      msgInput.focus();
     };
     emojiGrid.appendChild(item);
   });
@@ -790,15 +795,24 @@
     settingsPanel.classList.remove('active');
   };
 
-  imageBtn.onclick = () => imageInput.click();
+  imageBtn.onclick = (e) => {
+    e.stopPropagation();
+    imageInput.click();
+  };
 
-  // Envío de Imágenes con Validación de 5 MB
+  // Validación y Envío de Imágenes
   imageInput.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (getImageUploadCountToday() >= MAX_IMAGES_PER_DAY) {
+      alert(`Has alcanzado el límite de ${MAX_IMAGES_PER_DAY} fotos por día.`);
+      this.value = '';
+      return;
+    }
+
     if (file.size > MAX_FILE_SIZE) {
-      alert('La imagen no puede superar el tamaño máximo de 5 MB.');
+      alert('La imagen supera el límite de 5 MB.');
       this.value = '';
       return;
     }
@@ -807,6 +821,7 @@
     reader.onload = function(evt) {
       const base64Data = evt.target.result;
       sendPayload({ image: base64Data });
+      incrementImageUploadCount();
     };
     reader.readAsDataURL(file);
     this.value = '';
@@ -815,6 +830,11 @@
   document.onclick = (e) => {
     if (!emojiPicker.contains(e.target) && e.target !== emojiToggleBtn) emojiPicker.classList.remove('active');
     if (!settingsPanel.contains(e.target) && e.target !== document.getElementById('settingsToggleBtn')) settingsPanel.classList.remove('active');
+    
+    // Ocultar barras de reacciones flotantes activas
+    document.querySelectorAll('.msg-bubble-wrapper.show-reactions').forEach(el => {
+      if (!el.contains(e.target)) el.classList.remove('show-reactions');
+    });
   };
 
   document.getElementById('cancelReplyBtn').onclick = () => {
@@ -847,14 +867,14 @@
     emojiPicker.classList.remove('active');
   }
 
-  // Enviar Mensaje de Texto
   document.getElementById('chatForm').addEventListener('submit', (e) => {
     e.preventDefault();
     sendPayload();
   });
 
-  function getRemainingTimeString(timestamp) {
-    const remaining = EXPIRATION_MS - (Date.now() - timestamp);
+  function getRemainingTimeString(timestamp, isImage) {
+    const ttl = isImage ? IMAGE_EXPIRATION_MS : TEXT_EXPIRATION_MS;
+    const remaining = ttl - (Date.now() - timestamp);
     if (remaining <= 0) return 'Expirado';
 
     const hours = Math.floor(remaining / (1000 * 60 * 60));
@@ -866,19 +886,20 @@
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
+  // Permite activar la barra de respuesta SIN forzar el teclado
   function setReplyTarget(data) {
     const textPreview = data.image ? '📷 Imagen' : data.text;
     activeReply = { author: data.author, text: textPreview };
     document.getElementById('replyAuthor').textContent = `Respondiendo a ${data.author}`;
     document.getElementById('replyText').textContent = textPreview;
     document.getElementById('replyBar').classList.add('active');
-    msgInput.focus();
   }
 
-  // Renderizado Inteligente
   function createOrUpdateMessage(data, key) {
-    // Si ya expiró (más de 3 horas), lo elimina de Firebase e interfaz
-    if (Date.now() - data.timestamp >= EXPIRATION_MS) {
+    const isImage = !!data.image;
+    const ttl = isImage ? IMAGE_EXPIRATION_MS : TEXT_EXPIRATION_MS;
+
+    if (Date.now() - data.timestamp >= ttl) {
       remove(ref(db, `global_chat/${key}`));
       const expiredEl = document.getElementById(`m-${key}`);
       if (expiredEl) expiredEl.remove();
@@ -894,7 +915,6 @@
       el.className = `message-group ${isOwn ? 'own' : 'other'}`;
       viewport.appendChild(el);
 
-      // Gestos de Deslizar para Responder
       let touchStartX = 0;
       el.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive: true});
       el.addEventListener('touchmove', e => {
@@ -906,8 +926,7 @@
         el.style.transform = 'translateX(0px)';
       });
 
-      // Programar la remoción local automática al cumplirse las 3 horas
-      const remaining = EXPIRATION_MS - (Date.now() - data.timestamp);
+      const remaining = ttl - (Date.now() - data.timestamp);
       setTimeout(() => {
         el.remove();
         remove(ref(db, `global_chat/${key}`));
@@ -919,7 +938,7 @@
       const counts = {};
       Object.values(data.reactions).forEach(emoji => { if (emoji) counts[emoji] = (counts[emoji] || 0) + 1; });
       for (const [emoji, count] of Object.entries(counts)) {
-        reactionsHTML += `<div class="reaction-pill" onclick="window.sendReaction('${key}', '${emoji}')">${emoji} ${count}</div>`;
+        reactionsHTML += `<div class="reaction-pill" onclick="event.stopPropagation(); window.sendReaction('${key}', '${emoji}')">${emoji} ${count}</div>`;
       }
     }
 
@@ -935,27 +954,27 @@
 
     let imageHTML = '';
     if (data.image) {
-      imageHTML = `<img src="${data.image}" class="msg-img-thumb" alt="Imagen enviada" onclick="window.openImageModal('${data.image}')">`;
+      imageHTML = `<img src="${data.image}" class="msg-img-thumb" alt="Imagen enviada" onclick="event.stopPropagation(); window.openImageModal('${data.image}')">`;
     }
 
     const deleteHTML = isOwn ? `
-      <button class="delete-btn" onclick="window.deleteMsg('${key}')" title="Eliminar del servidor">
+      <button class="delete-btn" onclick="event.stopPropagation(); window.deleteMsg('${key}')" title="Eliminar del servidor">
         <iconify-icon icon="solar:trash-bin-trash-bold" style="font-size: 0.72rem;"></iconify-icon>
       </button>
     ` : '';
 
     const timeStr = formatTime(data.timestamp);
-    const expireStr = getRemainingTimeString(data.timestamp);
+    const expireStr = getRemainingTimeString(data.timestamp, isImage);
 
     el.innerHTML = `
       <span class="msg-author">${sanitize(data.author)}</span>
-      <div class="msg-bubble-wrapper" onclick="window.triggerReply('${key}')">
+      <div class="msg-bubble-wrapper" id="wrapper-${key}" onclick="event.stopPropagation(); window.toggleReactionMenu('${key}')">
         <div class="reaction-trigger-zone">
-          <span class="react-opt" onclick="window.sendReaction('${key}', '👍')">👍</span>
-          <span class="react-opt" onclick="window.sendReaction('${key}', '❤️')">❤️</span>
-          <span class="react-opt" onclick="window.sendReaction('${key}', '😂')">😂</span>
-          <span class="react-opt" onclick="window.sendReaction('${key}', '🔥')">🔥</span>
-          <span class="react-opt" onclick="window.sendReaction('${key}', '💩')">💩</span>
+          <span class="react-opt" onclick="event.stopPropagation(); window.sendReaction('${key}', '👍')">👍</span>
+          <span class="react-opt" onclick="event.stopPropagation(); window.sendReaction('${key}', '❤️')">❤️</span>
+          <span class="react-opt" onclick="event.stopPropagation(); window.sendReaction('${key}', '😂')">😂</span>
+          <span class="react-opt" onclick="event.stopPropagation(); window.sendReaction('${key}', '🔥')">🔥</span>
+          <span class="react-opt" onclick="event.stopPropagation(); window.sendReaction('${key}', '💩')">💩</span>
         </div>
         <div class="msg-bubble">
           ${replyHTML}
@@ -979,7 +998,6 @@
     viewport.scrollTop = viewport.scrollHeight;
   }
 
-  // Eventos Firebase
   onChildAdded(messagesRef, snap => createOrUpdateMessage(snap.val(), snap.key));
   onChildChanged(messagesRef, snap => createOrUpdateMessage(snap.val(), snap.key));
   onChildRemoved(messagesRef, snap => {
@@ -987,19 +1005,24 @@
     if (el) el.remove();
   });
 
+  // Muestra u oculta la barra de reacciones sin desplegar el teclado
+  window.toggleReactionMenu = (key) => {
+    const wrapper = document.getElementById(`wrapper-${key}`);
+    if (!wrapper) return;
+    const currentState = wrapper.classList.contains('show-reactions');
+    document.querySelectorAll('.msg-bubble-wrapper.show-reactions').forEach(el => el.classList.remove('show-reactions'));
+    if (!currentState) wrapper.classList.add('show-reactions');
+  };
+
   window.sendReaction = (key, emoji) => {
+    const wrapper = document.getElementById(`wrapper-${key}`);
+    if (wrapper) wrapper.classList.remove('show-reactions');
     const reactRef = ref(db, `global_chat/${key}/reactions/${user.uid}`);
     runTransaction(reactRef, curr => (curr === emoji ? null : emoji));
   };
 
-  // Eliminación Real del Servidor Firebase
   window.deleteMsg = (key) => {
     remove(ref(db, `global_chat/${key}`));
-  };
-
-  window.triggerReply = (key) => {
-    const el = document.getElementById(`m-${key}`);
-    if (el && el.dataset.payload) setReplyTarget(JSON.parse(el.dataset.payload));
   };
 
   // Visor Pantalla Completa
@@ -1009,6 +1032,7 @@
   const closeModalBtn = document.getElementById('closeModalBtn');
 
   window.openImageModal = (src) => {
+    if (document.activeElement) document.activeElement.blur();
     modalImage.src = src;
     downloadBtn.href = src;
     downloadBtn.setAttribute('download', `nova_img_${Date.now()}.png`);
@@ -1031,3 +1055,4 @@
 </script>
 </body>
 </html>
+
