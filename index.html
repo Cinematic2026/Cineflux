@@ -2,2110 +2,1032 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>TikTok Advanced Player - NOVA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>NOVA Live Global Chat</title>
+  
+  <!-- Iconify SVG Icons & Google Fonts -->
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
+    :root {
+      --bg: #070a0f;
+      --panel: #0d131f;
+      --panel-accent: #151c2d;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.35);
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --border: rgba(255, 255, 255, 0.08);
+      --bubble-own: linear-gradient(135deg, var(--accent), #1d4ed8);
+      --bubble-other: #161f30;
+      --sat: env(safe-area-inset-top);
+      --sab: env(safe-area-inset-bottom);
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: 'Plus Jakarta Sans', sans-serif; 
+      -webkit-tap-highlight-color: transparent; 
     }
 
     html, body {
+      height: 100%;
+      width: 100%;
+      background-color: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      position: fixed; /* Evita rebotes de scroll en móviles */
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Layout Responsivo Universal */
+    .chat-app {
       width: 100%;
       height: 100%;
-      height: 100dvh;
-      background-color: #000;
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      max-width: 650px;
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      position: relative;
       overflow: hidden;
     }
 
-    .app-container {
-      width: 100%;
-      height: 100%;
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-      scroll-behavior: smooth;
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+    @media (min-width: 650px) and (min-height: 650px) {
+      .chat-app {
+        height: 92vh;
+        border-radius: 24px;
+        border: 1px solid var(--border);
+        box-shadow: 0 0 80px rgba(0, 0, 0, 0.8);
+      }
     }
 
-    .app-container::-webkit-scrollbar {
-      display: none;
-    }
-
-    .feed-item {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      height: 100dvh;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #000;
-      overflow: hidden;
-      will-change: transform;
-      transform: translateZ(0);
-    }
-
-    /* ADAPTACIÓN DE VIDEO DINÁMICA (ESTILO TIKTOK ADAPTATIVO) */
-    .video-wrapper {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #000;
-    }
-
-    .video-player {
-      max-width: 100%;
-      max-height: 100%;
-      width: 100%;
-      height: 100%;
-      object-fit: contain; /* Garantiza la relación de aspecto exacta (16:9, 9:16, etc.) */
-      will-change: transform;
-      background: #000;
-    }
-
-    .ui-layer {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-      z-index: 10;
-    }
-
-    .ui-layer * {
-      pointer-events: auto;
-    }
-
-    body.player-mode .ui-layer {
-      opacity: 0;
-      pointer-events: none !important;
-    }
-
-    .state-icon-overlay {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.6);
-      width: 80px;
-      height: 80px;
-      background: rgba(0, 0, 0, 0.55);
-      backdrop-filter: blur(4px);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 12;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .state-icon-overlay.active {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    .state-icon-overlay svg {
-      width: 42px;
-      height: 42px;
-      fill: #ffffff;
-    }
-
-    /* BARRA SUPERIOR */
-    .top-bar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      padding-top: calc(env(safe-area-inset-top, 20px) + 12px);
-      padding-left: 16px;
-      padding-right: 16px;
+    /* Header Adaptable */
+    .chat-header {
+      padding: calc(10px + var(--sat)) 14px 10px 14px;
+      background: rgba(13, 19, 31, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
       z-index: 20;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+      gap: 8px;
     }
 
-    .top-bar-right {
+    .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
-    }
-
-    .search-trigger, .seen-trigger, .settings-trigger {
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(8px);
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #fff;
-      cursor: pointer;
-      transition: transform 0.2s ease, background 0.2s ease;
-    }
-
-    .search-trigger:active, .seen-trigger:active, .settings-trigger:active {
-      transform: scale(0.9);
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    .top-tabs {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 1.05rem;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-    }
-
-    .top-tabs span.active {
-      opacity: 1;
-      border-bottom: 3px solid #fff;
-      padding-bottom: 2px;
-      border-radius: 1px;
-    }
-
-    .dl-launcher-btn {
-      position: fixed;
-      top: calc(env(safe-area-inset-top, 20px) + 12px);
-      right: 118px;
-      z-index: 90;
-      width: 40px;
-      height: 40px;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 50%;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-
-    .dl-launcher-btn.active {
-      display: flex;
-    }
-
-    .dl-launcher-btn.animating svg {
-      animation: dlPulse 1.2s infinite ease-in-out;
-    }
-
-    .dl-badge {
-      position: absolute;
-      top: -2px;
-      right: -2px;
-      background: #fe2c55;
-      color: #fff;
-      font-size: 0.65rem;
-      font-weight: 800;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #000;
-    }
-
-    @keyframes dlPulse {
-      0% { transform: translateY(-2px); }
-      50% { transform: translateY(2px); }
-      100% { transform: translateY(-2px); }
-    }
-
-    /* MODALES DESLIZANTES */
-    .dl-modal-overlay, .settings-modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      z-index: 120;
-      display: none;
-      align-items: flex-end;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.25s ease;
-    }
-
-    .dl-modal-overlay.open, .settings-modal-overlay.open {
-      display: flex;
-      opacity: 1;
-    }
-
-    .dl-modal-content, .settings-modal-content {
-      width: 100%;
-      max-width: 500px;
-      background: #121212;
-      border-top-left-radius: 20px;
-      border-top-right-radius: 20px;
-      padding: 20px;
-      max-height: 80vh;
-      display: flex;
-      flex-direction: column;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      box-shadow: 0 -8px 30px rgba(0,0,0,0.8);
-      transform: translateY(100%);
-      transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
-      overflow-y: auto;
-    }
-
-    .dl-modal-overlay.open .dl-modal-content,
-    .settings-modal-overlay.open .settings-modal-content {
-      transform: translateY(0);
-    }
-
-    .dl-modal-header, .settings-modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #222;
-    }
-
-    .dl-modal-header h3, .settings-modal-header h3 {
-      font-size: 1.1rem;
-      font-weight: 700;
-    }
-
-    .dl-modal-close, .settings-modal-close {
-      background: none;
-      border: none;
-      color: #888;
-      font-size: 1.4rem;
-      cursor: pointer;
-    }
-
-    .dl-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      overflow-y: auto;
-    }
-
-    .dl-card {
-      display: flex;
-      gap: 12px;
-      background: #1c1c1e;
-      padding: 10px;
-      border-radius: 12px;
-      align-items: center;
-    }
-
-    .dl-card-thumb {
-      width: 60px;
-      height: 60px;
-      background: #2c2c2e;
-      border-radius: 8px;
-      object-fit: cover;
-      flex-shrink: 0;
-    }
-
-    .dl-card-info {
-      flex: 1;
+      gap: 8px;
       min-width: 0;
     }
 
-    .dl-card-title {
+    .brand h3 {
       font-size: 0.88rem;
-      font-weight: 600;
+      font-weight: 700;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 4px;
     }
 
-    .dl-card-desc {
-      font-size: 0.75rem;
-      color: #8e8e93;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 8px;
-    }
-
-    .dl-progress-bar-bg {
-      width: 100%;
-      height: 4px;
-      background: #3a3a3c;
-      border-radius: 2px;
-      overflow: hidden;
-      margin-bottom: 6px;
-    }
-
-    .dl-progress-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: #fe2c55;
-      transition: width 0.2s linear;
-    }
-
-    .dl-status-text {
-      font-size: 0.7rem;
-      color: #aaa;
-    }
-
-    .dl-card-actions {
+    .live-indicator {
       display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 0.65rem;
+      color: #4ade80;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #22c55e;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.8); }
+    }
+
+    .header-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .user-badge {
+      font-size: 0.72rem;
+      color: var(--accent);
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      padding: 5px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      max-width: 110px;
+    }
+
+    .user-badge span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .icon-btn-settings {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: color 0.2s, background 0.2s;
+      flex-shrink: 0;
+    }
+    .icon-btn-settings:active { transform: scale(0.95); }
+
+    /* Viewport de Mensajes */
+    .messages-viewport {
+      flex: 1;
+      padding: 14px 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      will-change: transform;
+      contain: content;
+    }
+
+    .messages-viewport::-webkit-scrollbar { width: 4px; }
+    .messages-viewport::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
+
+    .message-group {
+      display: flex;
+      flex-direction: column;
+      max-width: 86%;
+      position: relative;
+      touch-action: pan-y;
+      transition: transform 0.15s ease-out;
+      animation: slideUp 0.18s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-group.own { align-self: flex-end; align-items: flex-end; }
+    .message-group.other { align-self: flex-start; align-items: flex-start; }
+
+    .msg-author {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      margin-bottom: 3px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 2px;
+    }
+
+    .msg-bubble-wrapper { 
+      position: relative; 
+      width: 100%; 
+      cursor: pointer; 
+    }
+
+    .msg-bubble {
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      word-break: break-word;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .message-group.own .msg-bubble {
+      background: var(--bubble-own);
+      color: #ffffff;
+      border-bottom-right-radius: 3px;
+    }
+
+    .message-group.other .msg-bubble {
+      background: var(--bubble-other);
+      color: var(--text);
+      border-bottom-left-radius: 3px;
+      border: 1px solid var(--border);
+    }
+
+    /* Estilos para Imagen enviada en el chat */
+    .msg-img-thumb {
+      max-width: 250px;
+      max-height: 180px;
+      width: auto;
+      height: auto;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+      margin-top: 4px;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    .msg-img-thumb:hover {
+      opacity: 0.92;
+      transform: scale(1.01);
+    }
+
+    /* Cita de Respuesta */
+    .reply-quote {
+      background: rgba(0, 0, 0, 0.25);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      padding: 5px 8px;
+      margin-bottom: 6px;
+      font-size: 0.74rem;
+    }
+    .reply-quote-author { font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+    .reply-quote-text { color: rgba(255, 255, 255, 0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Metadata */
+    .msg-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.63rem;
+      color: rgba(255, 255, 255, 0.55);
+      margin-top: 3px;
+      padding: 0 2px;
+    }
+
+    .message-group.other .msg-meta { color: var(--text-dim); }
+
+    .expiry-tag {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      color: #f59e0b;
+      font-weight: 600;
+    }
+
+    .delete-btn {
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      margin-left: 2px;
+      opacity: 0.8;
+      padding: 2px;
+    }
+
+    /* Selector de Reacciones */
+    .reaction-trigger-zone {
+      position: absolute;
+      top: -32px;
+      display: none;
+      background: #151d2a;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 8px;
+      gap: 6px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      z-index: 10;
+    }
+
+    .message-group.own .reaction-trigger-zone { right: 0; }
+    .message-group.other .reaction-trigger-zone { left: 0; }
+    .msg-bubble-wrapper:hover .reaction-trigger-zone,
+    .msg-bubble-wrapper:active .reaction-trigger-zone { display: flex; }
+
+    .react-opt { cursor: pointer; font-size: 1.05rem; transition: transform 0.1s ease; }
+    .react-opt:active { transform: scale(1.3); }
+
+    .active-reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+
+    .reaction-pill {
+      background: rgba(21, 28, 45, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 2px 6px;
+      font-size: 0.68rem;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Preview de Respuesta */
+    .reply-preview-bar {
+      background: rgba(21, 29, 45, 0.95);
+      border-top: 1px solid var(--border);
+      padding: 6px 14px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+    }
+    .reply-preview-bar.active { display: flex; }
+    .reply-preview-info { border-left: 3px solid var(--accent); padding-left: 8px; min-width: 0; }
+    .reply-preview-title { font-weight: 700; color: var(--accent); }
+    .reply-preview-text { color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Footer Adaptable */
+    .chat-footer {
+      padding: 8px 10px calc(8px + var(--sab)) 10px;
+      background: rgba(13, 19, 31, 0.95);
+      border-top: 1px solid var(--border);
+      position: relative;
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 4px 6px 4px 14px;
       gap: 6px;
     }
 
-    .dl-btn {
-      background: #2c2c2e;
-      border: none;
-      color: #fff;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s ease;
+    .input-wrapper:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
     }
 
-    .dl-btn:active {
-      background: #3a3a3c;
-    }
-
-    .dl-btn.cancel {
-      background: rgba(254, 44, 85, 0.15);
-      color: #fe2c55;
-    }
-
-    /* ESTILOS DEL SECTOR DE AJUSTES */
-    .setting-group {
-      margin-bottom: 20px;
-    }
-
-    .setting-group-title {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #fe2c55;
-      font-weight: 700;
-      margin-bottom: 10px;
-    }
-
-    .setting-item-card {
-      background: #1a1a1c;
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .setting-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .setting-info-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-    }
-
-    .setting-info-sub {
-      font-size: 0.78rem;
-      color: #888;
-      margin-top: 2px;
-    }
-
-    .setting-btn-action {
-      background: #2a2a2d;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .setting-btn-action:active {
-      background: #3a3a3e;
-      transform: scale(0.96);
-    }
-
-    .setting-btn-action.danger {
-      background: rgba(254, 44, 85, 0.15);
-      color: #fe2c55;
-      border-color: rgba(254, 44, 85, 0.3);
-    }
-
-    .saver-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 6px;
-    }
-
-    .saver-card {
-      background: #242426;
-      border: 2px solid transparent;
-      border-radius: 10px;
-      padding: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-align: center;
-    }
-
-    .saver-card.active {
-      border-color: #fe2c55;
-      background: rgba(254, 44, 85, 0.08);
-    }
-
-    .saver-title {
-      font-size: 0.88rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .saver-desc {
-      font-size: 0.72rem;
-      color: #aaa;
-      line-height: 1.2;
-    }
-
-    /* MODAL DE CONFIRMACIÓN CUSTOMIZADO Y ELEGANTE (CENTRADOS) */
-    .custom-modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.82);
-      backdrop-filter: blur(12px);
-      z-index: 200;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
-    }
-
-    .custom-modal-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .custom-modal-card {
-      background: #18181a;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 20px;
-      padding: 24px;
-      width: 100%;
-      max-width: 360px;
-      text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-      transform: scale(0.85);
-      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .custom-modal-overlay.active .custom-modal-card {
-      transform: scale(1);
-    }
-
-    .custom-modal-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: rgba(254, 44, 85, 0.12);
-      color: #fe2c55;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px auto;
-    }
-
-    .custom-modal-icon svg {
-      width: 30px;
-      height: 30px;
-      fill: currentColor;
-    }
-
-    .custom-modal-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: #fff;
-    }
-
-    .custom-modal-body {
-      font-size: 0.85rem;
-      color: #aaa;
-      line-height: 1.45;
-      margin-bottom: 22px;
-    }
-
-    .custom-modal-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .custom-modal-btn {
+    .input-wrapper input {
       flex: 1;
-      padding: 12px;
-      border-radius: 10px;
+      background: transparent;
+      border: none;
+      color: var(--text);
       font-size: 0.88rem;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .custom-modal-btn.cancel {
-      background: #28282b;
-      color: #fff;
-    }
-
-    .custom-modal-btn.cancel:active {
-      background: #333336;
-    }
-
-    .custom-modal-btn.confirm {
-      background: #fe2c55;
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(254, 44, 85, 0.3);
-    }
-
-    .custom-modal-btn.confirm:active {
-      transform: scale(0.96);
-    }
-
-    /* MODAL BUSCADOR */
-    .search-modal {
-      position: fixed;
-      inset: 0;
-      background: #121212;
-      z-index: 100;
-      display: none;
-      flex-direction: column;
-      padding: calc(env(safe-area-inset-top, 20px) + 12px) 12px 12px 12px;
-    }
-
-    .search-modal.active {
-      display: flex;
-    }
-
-    .search-header {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .search-input {
-      flex: 1;
-      background: #262626;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 20px;
-      color: #fff;
-      font-size: 0.95rem;
       outline: none;
+      min-width: 0;
     }
 
-    .close-search {
-      background: none;
-      border: none;
-      color: #fe2c55;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
+    .char-counter {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      flex-shrink: 0;
     }
 
-    .search-results-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      overflow-y: auto;
-      padding-bottom: 20px;
-    }
-
-    .tt-card {
-      background: #1a1a1a;
-      border-radius: 8px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      cursor: pointer;
-      position: relative;
-    }
-
-    .tt-thumb-box {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 9 / 14;
-      background: #000;
-    }
-
-    .tt-thumb-box video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .tt-card-info {
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      background: #181818;
-    }
-
-    .tt-card-desc-box {
-      font-size: 0.82rem;
-      color: #eee;
-      line-height: 1.25;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      font-weight: 400;
-    }
-
-    .tt-card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 4px;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .tt-share-btn, .tt-unlike-btn {
-      background: none;
-      border: none;
-      color: #aaa;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-      font-size: 0.75rem;
-    }
-
-    .tt-unlike-btn {
-      color: #fe2c55;
-      font-weight: 600;
-    }
-
-    .tt-share-btn svg {
-      width: 18px;
-      height: 18px;
-      fill: #aaa;
-    }
-
-    /* VISTA DE VIDEOS GUARDADOS/VISTOS */
-    .seen-modal {
-      position: fixed;
-      inset: 0;
-      background: #000;
-      z-index: 110;
-      display: none;
-      flex-direction: column;
-      padding: calc(env(safe-area-inset-top, 20px) + 12px) 16px 16px 16px;
-    }
-
-    .seen-modal.active {
-      display: flex;
-    }
-
-    .seen-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .seen-header h2 {
-      font-size: 1.2rem;
-      font-weight: 700;
-    }
-
-    .video-info {
-      position: absolute;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 65px);
-      left: 16px;
-      right: 85px;
-      z-index: 15;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
-    }
-
-    .video-info .username {
-      font-weight: 700;
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-    }
-
-    .video-info .description-container {
-      font-size: 0.92rem;
-      line-height: 1.35;
-      margin-bottom: 8px;
-    }
-
-    .video-info .description {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .video-info .description.expanded {
-      -webkit-line-clamp: unset;
-      overflow: visible;
-    }
-
-    .btn-toggle-desc {
-      background: none;
-      border: none;
-      color: #bbb;
-      font-weight: bold;
-      font-size: 0.85rem;
-      cursor: pointer;
-      margin-top: 4px;
-      display: none;
-    }
-
-    .side-bar {
-      position: absolute;
-      right: 14px;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 70px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
-      z-index: 15;
-    }
+    .input-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 
     .action-btn {
-      background: none;
+      background: transparent;
       border: none;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-      font-size: 0.75rem;
-      position: relative;
-    }
-
-    .action-btn .icon-box {
-      width: 50px;
-      height: 50px;
-      background: rgba(255, 255, 255, 0.15);
+      color: var(--text-dim);
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       display: flex;
       justify-content: center;
       align-items: center;
-      backdrop-filter: blur(8px);
-      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      position: relative;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .send-btn { 
+      background: var(--accent); 
+      color: white; 
+    }
+
+    /* Paneles Flotantes Adaptables */
+    .emoji-picker-panel, .settings-panel {
+      position: absolute;
+      bottom: calc(60px + var(--sab));
+      right: 10px;
+      left: 10px;
+      max-width: 340px;
+      margin: 0 auto;
+      background: #111723;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+      display: none;
+      flex-direction: column;
+      z-index: 50;
       overflow: hidden;
+      animation: fadeIn 0.15s ease-out;
     }
 
-    .action-btn:active .icon-box {
-      transform: scale(0.8);
-    }
+    .emoji-picker-panel.active, .settings-panel.active { display: flex; }
 
-    .action-btn svg {
-      width: 28px;
-      height: 28px;
-      fill: #ffffff;
-      transition: fill 0.2s ease;
-      z-index: 2;
-    }
-
-    .action-btn.liked .icon-box {
-      background: rgba(254, 44, 85, 0.2);
-    }
-    .action-btn.liked svg {
-      fill: #fe2c55;
-      animation: popHeart 0.3s ease-in-out;
-    }
-
-    .speed-badge {
-      font-weight: 800;
-      font-size: 0.85rem;
-      letter-spacing: -0.5px;
-    }
-
-    .btn-label {
+    .emoji-picker-header, .settings-title {
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
       font-weight: 600;
-      font-size: 0.72rem;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
     }
 
-    .custom-player-bar {
-      position: absolute;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 15px);
-      left: 16px;
-      right: 16px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      z-index: 20;
+    .settings-panel { padding: 14px; gap: 12px; }
+
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      padding: 10px;
+      max-height: 200px;
+      overflow-y: auto;
     }
 
-    .mute-btn {
-      background: none;
-      border: none;
-      color: #fff;
+    .emoji-grid-item {
+      font-size: 1.2rem;
+      text-align: center;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 6px 0;
+      border-radius: 8px;
     }
 
-    .mute-btn svg {
-      width: 26px;
-      height: 26px;
-      fill: #fff;
+    .emoji-grid-item:active { background: rgba(255, 255, 255, 0.1); transform: scale(1.15); }
+
+    .field-group { display: flex; flex-direction: column; gap: 4px; }
+    .field-group label { font-size: 0.7rem; color: var(--text-dim); }
+    .field-group input, .field-group select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--text);
+      outline: none;
+      font-size: 0.82rem;
     }
 
-    .progress-wrapper {
-      flex: 1;
-      height: 16px;
-      display: flex;
-      align-items: center;
-      position: relative;
-      cursor: pointer;
-    }
-
-    .progress-track {
-      width: 100%;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.25);
-      border-radius: 2px;
-      position: relative;
-      overflow: hidden;
-      transition: height 0.15s ease;
-    }
-
-    .progress-wrapper:hover .progress-track {
-      height: 6px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #fe2c55, #ff0050);
-      border-radius: 2px;
-      will-change: width;
-    }
-
-    .seek-slider {
-      position: absolute;
+    /* Modal Visor Pantalla Completa */
+    .image-modal {
+      display: none;
+      position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .image-modal.active { display: flex; }
+
+    .image-modal-content {
+      max-width: 92vw;
+      max-height: 80vh;
+      border-radius: 12px;
+      object-fit: contain;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .image-modal-actions {
+      margin-top: 18px;
+    }
+
+    .modal-btn-download {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 10px 20px;
+      border-radius: 20px;
       cursor: pointer;
-      z-index: 2;
-    }
-
-    .time-display {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.9);
-      min-width: 38px;
-      text-align: right;
-      font-variant-numeric: tabular-nums;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.15s;
     }
 
-    .floating-heart {
+    .modal-btn-download:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.02);
+    }
+
+    .modal-close-btn {
       position: absolute;
-      width: 80px;
-      height: 80px;
-      pointer-events: none;
-      z-index: 99;
-      transform: translate(-50%, -50%) scale(0);
-      animation: heartPop 0.8s ease-out forwards;
+      top: 20px;
+      right: 20px;
+      font-size: 28px;
+      color: #fff;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background 0.2s;
     }
-
-    .floating-heart svg {
-      width: 100%;
-      height: 100%;
-      fill: #fe2c55;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
-    }
-
-    @keyframes heartPop {
-      0% { transform: translate(-50%, -50%) scale(0) rotate(-15deg); opacity: 1; }
-      50% { transform: translate(-50%, -50%) scale(1.3) rotate(15deg); opacity: 1; }
-      100% { transform: translate(-50%, -120px) scale(1) rotate(0deg); opacity: 0; }
-    }
-
-    @keyframes popHeart {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.3); }
-      100% { transform: scale(1); }
-    }
+    .modal-close-btn:hover { background: rgba(255, 255, 255, 0.25); }
   </style>
 </head>
 <body>
 
-  <!-- BOTÓN LAUNCHER DESCARGAS -->
-  <button id="dlLauncherBtn" class="dl-launcher-btn" onclick="openDownloadModal()">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff">
-      <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-    </svg>
-    <div id="dlBadge" class="dl-badge">0</div>
-  </button>
-
-  <!-- MODAL DE DESCARGAS -->
-  <div id="dlModalOverlay" class="dl-modal-overlay" onclick="closeDownloadModal(event)">
-    <div class="dl-modal-content" onclick="event.stopPropagation()">
-      <div class="dl-modal-header">
-        <h3>Centro de Descargas</h3>
-        <button class="dl-modal-close" onclick="closeDownloadModal()">&times;</button>
+<div class="chat-app">
+  <div class="chat-header">
+    <div class="brand">
+      <iconify-icon icon="solar:chat-round-line-bold-duotone" style="font-size: 1.4rem; color: var(--accent); flex-shrink:0;"></iconify-icon>
+      <h3>CHAT GLOBAL</h3>
+      <div class="live-indicator">
+        <div class="live-dot"></div> LIVE
       </div>
-      <div id="dlListContainer" class="dl-list"></div>
+    </div>
+    <div class="header-right-actions">
+      <div class="user-badge" id="userBadge">
+        <iconify-icon icon="solar:user-circle-bold" style="flex-shrink:0;"></iconify-icon>
+        <span id="badgeName">Anónimo</span>
+      </div>
+      <button class="icon-btn-settings" id="settingsToggleBtn" title="Ajustes">
+        <iconify-icon icon="solar:settings-bold-duotone" style="font-size: 1.15rem;"></iconify-icon>
+      </button>
     </div>
   </div>
 
-  <!-- MODAL DE AJUSTES -->
-  <div id="settingsModalOverlay" class="settings-modal-overlay" onclick="closeSettingsModal(event)">
-    <div class="settings-modal-content" onclick="event.stopPropagation()">
-      <div class="settings-modal-header">
-        <h3>Ajustes del Sistema</h3>
-        <button class="settings-modal-close" onclick="closeSettingsModal()">&times;</button>
-      </div>
-
-      <div class="setting-group">
-        <div class="setting-group-title">Interacciones</div>
-        <div class="setting-item-card">
-          <div class="setting-row">
-            <div>
-              <div class="setting-info-title">Descargas del Sistema</div>
-              <div class="setting-info-sub">Administra las tareas y archivos en segundo plano</div>
-            </div>
-            <button class="setting-btn-action" onclick="closeSettingsModal(); openDownloadModal();">Abrir Panel</button>
-          </div>
-        </div>
-
-        <div class="setting-item-card">
-          <div class="setting-row">
-            <div>
-              <div class="setting-info-title">Videos que te gustaron</div>
-              <div class="setting-info-sub">Gestiona y elimina tus likes almacenados</div>
-            </div>
-            <button class="setting-btn-action" onclick="closeSettingsModal(); toggleSeenModal(true);">Ver Lista</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="setting-group">
-        <div class="setting-group-title">Caché y Datos</div>
-        <div class="setting-item-card">
-          <div class="setting-row">
-            <div>
-              <div class="setting-info-title">Almacenamiento Local</div>
-              <div class="setting-info-sub" id="storageUsageSub">Calculando consumo exacto...</div>
-            </div>
-          </div>
-          <div style="display: flex; gap: 8px; margin-top: 4px;">
-            <button class="setting-btn-action danger" style="flex:1;" onclick="promptClearCache()">Liberar Caché</button>
-            <button class="setting-btn-action danger" style="flex:1;" onclick="promptClearData()">Borrar Datos</button>
-          </div>
-        </div>
-
-        <div class="setting-item-card">
-          <div class="setting-info-title">Modo Ahorro de Datos</div>
-          <div class="setting-info-sub">Ajusta el rendimiento para optimizar la red móvil</div>
-          <div class="saver-options">
-            <div class="saver-card" id="saverStandard" onclick="setDataSaverMode('standard')">
-              <div class="saver-title">Estándar</div>
-              <div class="saver-desc">Calidad máxima y procesamiento completo.</div>
-            </div>
-            <div class="saver-card" id="saverExtreme" onclick="setDataSaverMode('extreme')">
-              <div class="saver-title">Extremo Pro</div>
-              <div class="saver-desc">Limita velocidad en tiempo real y ahorra recursos.</div>
-            </div>
-          </div>
-        </div>
-      </div>
+  <!-- Panel Ajustes -->
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-title" style="padding:0; border:none; color:var(--text); font-size:0.85rem;">Personalización</div>
+    <div class="field-group">
+      <label>Tu Nombre de Usuario:</label>
+      <input type="text" id="usernameInput" placeholder="Escribe tu nombre..." maxlength="18">
     </div>
+    <div class="field-group">
+      <label>Color de Acento:</label>
+      <select id="colorSelect">
+        <option value="#3b82f6">Azul Eléctrico</option>
+        <option value="#8b5cf6">Morado Neón</option>
+        <option value="#10b981">Verde Esmeralda</option>
+        <option value="#f43f5e">Rosa Carmesí</option>
+        <option value="#f59e0b">Ámbar Fuego</option>
+      </select>
+    </div>
+    <button class="action-btn send-btn" id="saveSettingsBtn" style="width: 100%; border-radius: 8px; height: 34px; font-size: 0.78rem; font-weight: 600;">Guardar Cambios</button>
   </div>
 
-  <!-- MODAL DE CONFIRMACIÓN CUSTOMIZADO (CENTRO DE PANTALLA) -->
-  <div id="customModalOverlay" class="custom-modal-overlay">
-    <div class="custom-modal-card">
-      <div class="custom-modal-icon" id="customModalIcon">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+  <!-- Viewport Mensajes -->
+  <div class="messages-viewport" id="viewport"></div>
+
+  <!-- Banner Respuesta Activa -->
+  <div class="reply-preview-bar" id="replyBar">
+    <div class="reply-preview-info">
+      <div class="reply-preview-title" id="replyAuthor">Respondiendo</div>
+      <div class="reply-preview-text" id="replyText">...</div>
+    </div>
+    <button class="icon-btn-settings" id="cancelReplyBtn" style="width:26px; height:26px; border:none;"><iconify-icon icon="solar:close-circle-bold"></iconify-icon></button>
+  </div>
+
+  <!-- Emoji Picker -->
+  <div class="emoji-picker-panel" id="emojiPicker">
+    <div class="emoji-picker-header">EMOJIS RÁPIDOS</div>
+    <div class="emoji-grid" id="emojiGrid"></div>
+  </div>
+
+  <!-- Footer Input -->
+  <div class="chat-footer">
+    <form class="input-wrapper" id="chatForm">
+      <input type="file" id="imageInput" accept="image/*" style="display: none;">
+      <button type="button" class="action-btn" id="imageBtn" title="Adjuntar Imagen">
+        <iconify-icon icon="solar:gallery-wide-bold-duotone" style="font-size: 1.25rem;"></iconify-icon>
+      </button>
+      <input type="text" id="msgInput" placeholder="Escribe un mensaje..." maxlength="300" autocomplete="off">
+      <span class="char-counter" id="charCounter">300</span>
+      <div class="input-actions">
+        <button type="button" class="action-btn" id="emojiToggleBtn" title="Emojis">
+          <iconify-icon icon="solar:smile-circle-bold-duotone" style="font-size: 1.25rem;"></iconify-icon>
+        </button>
+        <button type="submit" class="action-btn send-btn" title="Enviar">
+          <iconify-icon icon="solar:plain-3-bold-duotone" style="font-size: 1.15rem;"></iconify-icon>
+        </button>
       </div>
-      <div class="custom-modal-title" id="customModalTitle">¿Estás Seguro?</div>
-      <div class="custom-modal-body" id="customModalBody">Esta es una advertencia de acción importante.</div>
-      <div class="custom-modal-actions">
-        <button class="custom-modal-btn cancel" id="customModalCancelBtn" onclick="closeCustomModal()">Cancelar</button>
-        <button class="custom-modal-btn confirm" id="customModalConfirmBtn">Confirmar</button>
-      </div>
-    </div>
+    </form>
   </div>
+</div>
 
-  <main class="app-container" id="appContainer"></main>
-
-  <!-- MODAL BÚSQUEDA -->
-  <div class="search-modal" id="searchModal">
-    <div class="search-header">
-      <input type="text" class="search-input" id="searchInput" placeholder="Buscar por palabra clave o #hashtag..." oninput="handleSearch()">
-      <button class="close-search" onclick="toggleSearchModal(false)">Cancelar</button>
-    </div>
-    <div class="search-results-grid" id="searchResults"></div>
+<!-- Modal Pantalla Completa (Visor) -->
+<div id="imageModal" class="image-modal">
+  <button class="modal-close-btn" id="closeModalBtn">&times;</button>
+  <img id="modalImage" class="image-modal-content" src="" alt="Vista Previa">
+  <div class="image-modal-actions">
+    <a id="downloadBtn" class="modal-btn-download" download="imagen_nova.png">
+      <iconify-icon icon="solar:download-square-bold-duotone" style="font-size: 1.2rem;"></iconify-icon>
+      Descargar Imagen
+    </a>
   </div>
+</div>
 
-  <!-- MODAL VISTOS / LIKED VIDEOS -->
-  <div class="seen-modal" id="seenModal">
-    <div class="seen-header">
-      <h2>Videos que te gustaron</h2>
-      <button class="close-search" onclick="toggleSeenModal(false)">Cerrar</button>
-    </div>
-    <div class="search-results-grid" id="seenResults"></div>
-  </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { 
+    getDatabase, 
+    ref, 
+    push, 
+    remove,
+    onChildAdded, 
+    onChildChanged, 
+    onChildRemoved,
+    runTransaction,
+    get
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  <script>
-    const VIDEO_DATABASE = [            
-      {
-        id: "nova-01",
-        src: "https://cdn.xfree.com/xfree-prod/b/8/a/b8ab6de3-85c2-4356-913c-425456c2e072/full.mp4",
-        username: "Unchained",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "Lesbians#lesbianas #adolecentes #chicas #sexy"
-      },
-      {
-        id: "nova-02",
-        src: "https://cdn.xfree.com/xfree-prod/5/e/7/5e7eea51-1c33-4a66-b2ec-a51748b08fb8/full.mp4",
-        username: "Unchained",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "Kinky Lesbians Licking And Squirting Each Other #Squirt#Morena#Tatuaje#Orgasmo#Dedos#Lesbianas#Besar#Lamiendo#de- D Edo En El Culo#Vertical Porn"
-      },
-      {
-        id: "nova-03",
-        src: "https://cdn.xfree.com/xfree-prod/6/9/b/69b7ecbc-649b-4af8-99bd-91dd9ace3e28/full.mp4",
-        username: "Diehunter",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "Strapon lesbianas #morena #lesbianas #blanca #sexy"
-      },
-      {
-        id: "nova-04",
-        src: "https://cdn.xfree.com/xfree-prod/0/a/8/0a833dfa-7084-4cb8-bccb-33d45fbbee71/full.mp4",
-        username: "porn",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "lesbians porn !!! #Tetas Grandes#Tatuaje#Consolador#Lesbianas#Bikini#Piercing#Aceite#Besar#Lamiendo#Clítoris#Chicas Tatuadas#fr- F Rotamiento De Coño#Vertical Porn"
-      }, 
-      {
-        id: "nova-05",
-        src: "https://cdn.xfree.com/xfree-prod/2/a/2/2a207fa8-bdba-4cc5-be9a-6dc9948b1050/full.mp4",
-        username: "Unchained",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "Amigas Lesbianas #Dedos#Lesbianas#Arnés Consolador"
-      },
-      {
-        id: "nova-06",
-        src: "https://cdn.xfree.com/xfree-prod/d/a/c/dac8cb0d-2509-477c-8343-8f6e25f93282/full.mp4",
-        username: "pornx",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "🔥 #masturbandome"
-      },
-      {
-        id: "nova-07",
-        src: "https://cdn.xfree.com/xfree-prod/6/3/e/63eee587-90f2-4293-9bc2-d3d86129191a/full.mp4",
-        username: "michael",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "entre amigas sabe mejor #amigas #porno"
-      },
-      {
-        id: "nova-08",
-        src: "https://www.xxxfollow.com/media/fans/post_public/3771/37716313/823775_fhd.mp4",
-        username: "oblivi0n",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "Anal #anal"
-      },      
-      {
-        id: "nova-09",
-        src: "https://www.xxxfollow.com/media/fans/post_public/3695/36953274/1711657_fhd.mp4",
-        username: "Nova18",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "encanta abrirle las piernas a este niño 😈😈.#chico #milf #mujer"
-      },
-      {
-        id: "nova-10",
-        src: "https://www.xxxfollow.com/media/fans/post_public/4734/47344181/1729380_fhd.mp4",
-        username: "Nova18",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "#pequeña #chica #flaca #tetas"
-      },
-      {
-        id: "nova-11",
-        src: "https://www.xxxfollow.com/media/fans/post_public/4443/44438797/1709911_fhd.mp4",
-        username: "Nova18",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "#rubia #masturbacion #cosplay"
-      },
-      {
-        id: "nova-12",
-        src: "https://www.xxxfollow.com/media/fans/post_public/3165/31654649/1197196_fhd.mp4",
-        username: "Novq18",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "Leche 🔥 #leche #18años #adolecente"
-      },
-      {
-        id: "nova-13",
-        src: "https://www.xxxfollow.com/media/fans/post_public/4323/43238529/1325090_fhd.mp4",
-        username: "Nova18",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "#mama #mami #condom"
-      },
-      {
-        id: "nova-14",
-        src: "https://www.xxxfollow.com/media/fans/post_public/4179/41791007-1/1510318_fhd.mp4",
-        username: "Nova18",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "18 años #joven #tetas #coño #culazo #dedos"
-      },
-      {
-        id: "nova-15",
-        src: "https://cdn.xfree.com/xfree-prod/1/c/4/1c4cdc0f-ebda-492b-8170-25e073a8784f/full.mp4",
-        username: "Nova18",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "uff #mamada"
-      },
-      {
-        id: "nova-16",
-        src: "https://cdn.xfree.com/xfree-prod/f/f/1/ff117dbc-01fa-4304-bc48-17b508d4fd97/full.mp4",
-        username: "Nova18",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "Pajeada en el bus #bus #chica #mamada"
-      },
-      {
-        id: "nova-17",
-        src: "https://www.xxxfollow.com/media/fans/post_public/4084/40849583/1510476_uhd.mp4",
-        username: "Nova18",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "Una gran verga intentando entrar en mi estrecha cuca #cuca #verga"
-      },
-      {
-        id: "nova-18",
-        src: "https://www.xxxfollow.com/media/fans/post_public/3695/36953274/736500.mp4",
-        username: "Nova18",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "te gustaria que colocara  mi enorme trasero en tu cara ? 🥵🔥 #trasero #milf #latina #español"
-      },
-      {
-        id: "nova-19",
-        src: "https://cdn.xfree.com/xfree-prod/1/6/c/16c4a3fd-ef52-474f-b1db-67d78481fa66/full.mp4",
-        username: "Nova18",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "Big-titted Latinas and BBWs are having one hell of a pussy fingering and cock loving foursome fuckfest on a bed. Now that's multi-tasking! #Tetas Grandes#Latina#Dedos#Cuarteto#Joder#Regordeta"
-      },
-      {
-        id: "nova-20",
-        src: "https://cdn.xfree.com/xfree-prod/8/2/1/821612b3-6932-4411-a6d5-a1564098abde/full.mp4",
-        username: "Nova18",
-        avatar: "https://i.picasion.com/pic93/ab8f73dbff8100c67127da4a8a63fa15.gif",
-        description: "Quieres tocarme papi #Aficionados#Morena#Tatuaje#Gafas#Masturbación#Latina#Solo#Onlyfans#Vertical Porn"
-      },
-    ];
+  const firebaseConfig = {
+    apiKey: "AIzaSyDYDq_dAc2fJI8HYwe7qXFM7BueiC3yDPQ",
+    authDomain: "nova-api-3a052.firebaseapp.com",
+    databaseURL: "https://nova-api-3a052-default-rtdb.firebaseio.com",
+    projectId: "nova-api-3a052",
+    storageBucket: "nova-api-3a052.firebasestorage.app",
+    messagingSenderId: "300651642455",
+    appId: "1:300651642455:web:533eeb0e6dac60f825ed12"
+  };
 
-    class NovaStorage {
-      constructor() {
-        this.dbName = "NovaPlayerDB";
-        this.db = null;
-      }
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  
+  // 3 Horas Exactas de Expiración (10,800,000 ms)
+  const EXPIRATION_MS = 3 * 60 * 60 * 1000;
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
-      async init() {
-        return new Promise((resolve, reject) => {
-          const request = indexedDB.open(this.dbName, 2);
-          request.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains("likes")) {
-              db.createObjectStore("likes", { keyPath: "id" });
-            }
-            if (!db.objectStoreNames.contains("settings")) {
-              db.createObjectStore("settings", { keyPath: "key" });
-            }
-          };
-          request.onsuccess = (e) => {
-            this.db = e.target.result;
-            resolve();
-          };
-          request.onerror = (e) => reject(e);
+  let activeReply = null;
+  
+  function setupIdentity() {
+    let saved = localStorage.getItem('nova_user');
+    if (!saved) {
+      const randomId = Math.floor(1000 + Math.random() * 9000);
+      saved = JSON.stringify({ uid: `usr_${Date.now()}_${randomId}`, name: `User #${randomId}`, color: '#3b82f6' });
+      localStorage.setItem('nova_user', saved);
+    }
+    return JSON.parse(saved);
+  }
+
+  let user = setupIdentity();
+  const messagesRef = ref(db, 'global_chat');
+  const viewport = document.getElementById('viewport');
+
+  function applyUserConfig() {
+    document.getElementById('badgeName').textContent = user.name;
+    document.getElementById('usernameInput').value = user.name;
+    document.getElementById('colorSelect').value = user.color || '#3b82f6';
+    document.documentElement.style.setProperty('--accent', user.color || '#3b82f6');
+  }
+  applyUserConfig();
+
+  // Sonido de Envío Optimizado
+  function playPopSound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(580, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.07);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.07);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.07);
+    } catch (e) {}
+  }
+
+  // Auto-Limpieza en Servidor (Borra de Firebase lo mayor a 3 Horas)
+  async function cleanExpiredServerData() {
+    try {
+      const snapshot = await get(messagesRef);
+      if (snapshot.exists()) {
+        const now = Date.now();
+        const data = snapshot.val();
+        Object.keys(data).forEach(key => {
+          if (now - data[key].timestamp >= EXPIRATION_MS) {
+            remove(ref(db, `global_chat/${key}`));
+          }
         });
       }
+    } catch (err) {
+      console.warn("Limpieza omitida:", err);
+    }
+  }
+  cleanExpiredServerData();
+  setInterval(cleanExpiredServerData, 60000); // Revisión automática cada minuto
 
-      async setLike(id, liked) {
-        if (!this.db) return;
-        const tx = this.db.transaction("likes", "readwrite");
-        const store = tx.objectStore("likes");
-        store.put({ id: id, liked: liked, timestamp: Date.now() });
-      }
+  // Ajustes
+  const settingsPanel = document.getElementById('settingsPanel');
+  document.getElementById('settingsToggleBtn').onclick = (e) => {
+    e.stopPropagation();
+    settingsPanel.classList.toggle('active');
+    emojiPicker.classList.remove('active');
+  };
 
-      async getLike(id) {
-        if (!this.db) return false;
-        return new Promise((resolve) => {
-          const tx = this.db.transaction("likes", "readonly");
-          const store = tx.objectStore("likes");
-          const req = store.get(id);
-          req.onsuccess = () => resolve(req.result ? req.result.liked : false);
-          req.onerror = () => resolve(false);
-        });
-      }
+  document.getElementById('saveSettingsBtn').onclick = () => {
+    const nameVal = document.getElementById('usernameInput').value.trim();
+    if (nameVal) user.name = nameVal;
+    user.color = document.getElementById('colorSelect').value;
+    localStorage.setItem('nova_user', JSON.stringify(user));
+    applyUserConfig();
+    settingsPanel.classList.remove('active');
+  };
 
-      async getAllLikes() {
-        if (!this.db) return [];
-        return new Promise((resolve) => {
-          const tx = this.db.transaction("likes", "readonly");
-          const store = tx.objectStore("likes");
-          const req = store.getAll();
-          req.onsuccess = () => {
-            const likedIds = (req.result || []).filter(item => item.liked).map(item => item.id);
-            resolve(likedIds);
-          };
-          req.onerror = () => resolve([]);
-        });
-      }
+  // Emojis
+  const emojiList = ['🔥','😂','❤️','🍿','👏','😎','🙌','🚀','💀','🎉','⚡','😍','🤔','💯','🥳','👍','👎','💩','👀','✨','💪','🎯','🤩','👑'];
+  const emojiGrid = document.getElementById('emojiGrid');
+  const emojiPicker = document.getElementById('emojiPicker');
+  const emojiToggleBtn = document.getElementById('emojiToggleBtn');
+  const msgInput = document.getElementById('msgInput');
+  const charCounter = document.getElementById('charCounter');
+  const imageBtn = document.getElementById('imageBtn');
+  const imageInput = document.getElementById('imageInput');
 
-      async setSetting(key, value) {
-        if (!this.db) return;
-        const tx = this.db.transaction("settings", "readwrite");
-        const store = tx.objectStore("settings");
-        store.put({ key: key, value: value });
-      }
+  emojiList.forEach(emoji => {
+    const item = document.createElement('div');
+    item.className = 'emoji-grid-item';
+    item.textContent = emoji;
+    item.onclick = () => {
+      msgInput.value += emoji;
+      updateCounter();
+      msgInput.focus();
+    };
+    emojiGrid.appendChild(item);
+  });
 
-      async getSetting(key) {
-        if (!this.db) return null;
-        return new Promise((resolve) => {
-          const tx = this.db.transaction("settings", "readonly");
-          const store = tx.objectStore("settings");
-          const req = store.get(key);
-          req.onsuccess = () => resolve(req.result ? req.result.value : null);
-          req.onerror = () => resolve(null);
-        });
-      }
+  function updateCounter() {
+    charCounter.textContent = 300 - msgInput.value.length;
+  }
+  msgInput.addEventListener('input', updateCounter);
+
+  emojiToggleBtn.onclick = (e) => {
+    e.stopPropagation();
+    emojiPicker.classList.toggle('active');
+    settingsPanel.classList.remove('active');
+  };
+
+  imageBtn.onclick = () => imageInput.click();
+
+  // Envío de Imágenes con Validación de 5 MB
+  imageInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      alert('La imagen no puede superar el tamaño máximo de 5 MB.');
+      this.value = '';
+      return;
     }
 
-    const novaDB = new NovaStorage();
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const base64Data = evt.target.result;
+      sendPayload({ image: base64Data });
+    };
+    reader.readAsDataURL(file);
+    this.value = '';
+  });
 
-    /* GESTOR DE DESCARGAS ROBUSTO (BLOB STREAM DIRECTO) */
-    const downloadManager = {
-      tasks: new Map(),
+  document.onclick = (e) => {
+    if (!emojiPicker.contains(e.target) && e.target !== emojiToggleBtn) emojiPicker.classList.remove('active');
+    if (!settingsPanel.contains(e.target) && e.target !== document.getElementById('settingsToggleBtn')) settingsPanel.classList.remove('active');
+  };
 
-      startDownload(videoData) {
-        if (this.tasks.has(videoData.id)) {
-          openDownloadModal();
-          return;
-        }
+  document.getElementById('cancelReplyBtn').onclick = () => {
+    activeReply = null;
+    document.getElementById('replyBar').classList.remove('active');
+  };
 
-        const controller = new AbortController();
-        const task = {
-          id: videoData.id,
-          username: videoData.username,
-          description: videoData.description,
-          src: videoData.src,
-          progress: 0,
-          status: 'downloading',
-          controller: controller,
-          loaded: 0,
-          total: 0
-        };
+  function sendPayload(extraData = {}) {
+    const val = msgInput.value.trim();
+    if (!val && !extraData.image) return;
 
-        this.tasks.set(videoData.id, task);
-        this.updateGlobalLauncher();
-        this.renderDownloadList();
-        this.forceDirectBlobDownload(task);
-      },
-
-      async forceDirectBlobDownload(task) {
-        try {
-          task.status = 'downloading';
-          this.updateTaskUI(task);
-
-          const response = await fetch(task.src, { signal: task.controller.signal });
-          if (!response.ok) throw new Error("HTTP error");
-
-          const contentLength = response.headers.get('content-length');
-          task.total = contentLength ? parseInt(contentLength, 10) : 0;
-
-          const reader = response.body.getReader();
-          let receivedLength = 0;
-          let chunks = [];
-
-          while(true) {
-            const {done, value} = await reader.read();
-            if (done) break;
-
-            chunks.push(value);
-            receivedLength += value.length;
-            task.loaded = receivedLength;
-
-            if (task.total > 0) {
-              task.progress = Math.round((receivedLength / task.total) * 100);
-            } else {
-              task.progress = 50; 
-            }
-            this.updateTaskUI(task);
-          }
-
-          const blob = new Blob(chunks, { type: 'video/mp4' });
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = blobUrl;
-          a.download = `${task.username}_${task.id}.mp4`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
-
-          task.status = 'completed';
-          task.progress = 100;
-          this.updateTaskUI(task);
-        } catch(e) {
-          if (e.name === 'AbortError') {
-            task.status = 'paused';
-          } else {
-            // Fallback de respaldo alternativo directo
-            const a = document.createElement('a');
-            a.href = task.src;
-            a.download = `${task.username}_${task.id}.mp4`;
-            a.target = "_blank";
-            a.click();
-
-            task.status = 'completed';
-            task.progress = 100;
-          }
-          this.updateTaskUI(task);
-        } finally {
-          this.updateGlobalLauncher();
-        }
-      },
-
-      togglePause(id) {
-        const task = this.tasks.get(id);
-        if (!task) return;
-
-        if (task.status === 'downloading') {
-          task.status = 'paused';
-          if (task.controller) task.controller.abort();
-          this.updateTaskUI(task);
-          this.updateGlobalLauncher();
-        } else if (task.status === 'paused') {
-          task.controller = new AbortController();
-          this.forceDirectBlobDownload(task);
-        }
-      },
-
-      cancelDownload(id) {
-        const task = this.tasks.get(id);
-        if (task) {
-          task.status = 'cancelled';
-          if (task.controller) task.controller.abort();
-          this.tasks.delete(id);
-          this.renderDownloadList();
-          this.updateGlobalLauncher();
-        }
-      },
-
-      updateGlobalLauncher() {
-        const launcher = document.getElementById('dlLauncherBtn');
-        const badge = document.getElementById('dlBadge');
-        const activeTasks = Array.from(this.tasks.values()).filter(t => t.status === 'downloading' || t.status === 'paused');
-
-        if (this.tasks.size > 0) {
-          launcher.classList.add('active');
-          badge.textContent = activeTasks.length;
-          
-          const isAnyDownloading = Array.from(this.tasks.values()).some(t => t.status === 'downloading');
-          launcher.classList.toggle('animating', isAnyDownloading);
-        } else {
-          launcher.classList.remove('active');
-        }
-      },
-
-      escapeHtml(str) {
-        return String(str)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#039;");
-      },
-
-      renderDownloadList() {
-        const container = document.getElementById('dlListContainer');
-        if (this.tasks.size === 0) {
-          container.innerHTML = `<div style="text-align:center; padding: 30px; color: #666;">No hay descargas activas en este momento</div>`;
-          return;
-        }
-
-        container.innerHTML = Array.from(this.tasks.values()).map(task => `
-          <div class="dl-card" id="dl-card-${task.id}">
-            <video class="dl-card-thumb" src="${task.src}#t=0.5" preload="metadata" muted></video>
-            <div class="dl-card-info">
-              <div class="dl-card-title">${this.escapeHtml(task.username)}</div>
-              <div class="dl-card-desc">${this.escapeHtml(task.description)}</div>
-              <div class="dl-progress-bar-bg">
-                <div class="dl-progress-bar-fill" style="width: ${task.progress}%"></div>
-              </div>
-              <div class="dl-status-text">${this.getStatusLabel(task)}</div>
-            </div>
-            <div class="dl-card-actions">
-              ${task.status !== 'completed' ? `
-                <button class="dl-btn" onclick="downloadManager.togglePause('${task.id}')">
-                  ${task.status === 'downloading' ? 'Pausar' : 'Reanudar'}
-                </button>
-              ` : ''}
-              <button class="dl-btn cancel" onclick="downloadManager.cancelDownload('${task.id}')">
-                ${task.status === 'completed' ? 'Limpiar' : 'Cancelar'}
-              </button>
-            </div>
-          </div>
-        `).join('');
-      },
-
-      updateTaskUI(task) {
-        const card = document.getElementById(`dl-card-${task.id}`);
-        if (!card) return;
-
-        const fill = card.querySelector('.dl-progress-bar-fill');
-        const statusText = card.querySelector('.dl-status-text');
-        const actions = card.querySelector('.dl-card-actions');
-
-        if (fill) fill.style.width = `${task.progress}%`;
-        if (statusText) statusText.textContent = this.getStatusLabel(task);
-
-        if (actions) {
-          actions.innerHTML = `
-            ${task.status !== 'completed' ? `
-              <button class="dl-btn" onclick="downloadManager.togglePause('${task.id}')">
-                ${task.status === 'downloading' ? 'Pausar' : 'Reanudar'}
-              </button>
-            ` : ''}
-            <button class="dl-btn cancel" onclick="downloadManager.cancelDownload('${task.id}')">
-              ${task.status === 'completed' ? 'Limpiar' : 'Cancelar'}
-            </button>
-          `;
-        }
-      },
-
-      getStatusLabel(task) {
-        switch(task.status) {
-          case 'downloading': return `Descargando... ${task.progress}%`;
-          case 'paused': return `Pausado - ${task.progress}%`;
-          case 'completed': return `¡Descargado exitosamente!`;
-          case 'error': return `Error en descarga directa.`;
-          default: return '';
-        }
-      }
+    const payload = {
+      uid: user.uid,
+      author: user.name,
+      text: val,
+      timestamp: Date.now(),
+      reactions: {},
+      ...extraData
     };
 
-    function openDownloadModal() {
-      downloadManager.renderDownloadList();
-      document.getElementById('dlModalOverlay').classList.add('open');
+    if (activeReply) payload.replyTo = activeReply;
+
+    push(messagesRef, payload);
+    playPopSound();
+
+    msgInput.value = '';
+    updateCounter();
+    activeReply = null;
+    document.getElementById('replyBar').classList.remove('active');
+    emojiPicker.classList.remove('active');
+  }
+
+  // Enviar Mensaje de Texto
+  document.getElementById('chatForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendPayload();
+  });
+
+  function getRemainingTimeString(timestamp) {
+    const remaining = EXPIRATION_MS - (Date.now() - timestamp);
+    if (remaining <= 0) return 'Expirado';
+
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+  }
+
+  function formatTime(timestamp) {
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function setReplyTarget(data) {
+    const textPreview = data.image ? '📷 Imagen' : data.text;
+    activeReply = { author: data.author, text: textPreview };
+    document.getElementById('replyAuthor').textContent = `Respondiendo a ${data.author}`;
+    document.getElementById('replyText').textContent = textPreview;
+    document.getElementById('replyBar').classList.add('active');
+    msgInput.focus();
+  }
+
+  // Renderizado Inteligente
+  function createOrUpdateMessage(data, key) {
+    // Si ya expiró (más de 3 horas), lo elimina de Firebase e interfaz
+    if (Date.now() - data.timestamp >= EXPIRATION_MS) {
+      remove(ref(db, `global_chat/${key}`));
+      const expiredEl = document.getElementById(`m-${key}`);
+      if (expiredEl) expiredEl.remove();
+      return;
     }
 
-    function closeDownloadModal(e) {
-      if (!e || e.target === document.getElementById('dlModalOverlay') || e.target.classList.contains('dl-modal-close')) {
-        document.getElementById('dlModalOverlay').classList.remove('open');
-      }
-    }
+    let el = document.getElementById(`m-${key}`);
+    const isOwn = data.uid === user.uid;
 
-    function openSettingsModal() {
-      updateStorageMetricsDisplay();
-      document.getElementById('settingsModalOverlay').classList.add('open');
-    }
+    if (!el) {
+      el = document.createElement('div');
+      el.id = `m-${key}`;
+      el.className = `message-group ${isOwn ? 'own' : 'other'}`;
+      viewport.appendChild(el);
 
-    function closeSettingsModal(e) {
-      if (!e || e.target === document.getElementById('settingsModalOverlay') || e.target.classList.contains('settings-modal-close')) {
-        document.getElementById('settingsModalOverlay').classList.remove('open');
-      }
-    }
-
-    async function updateStorageMetricsDisplay() {
-      const sub = document.getElementById('storageUsageSub');
-      if (navigator.storage && navigator.storage.estimate) {
-        const estimate = await navigator.storage.estimate();
-        const usageMB = (estimate.usage / (1024 * 1024)).toFixed(2);
-        const quotaGB = (estimate.quota / (1024 * 1024 * 1024)).toFixed(1);
-        sub.textContent = `${usageMB} MB consumidos (Límite disponible: ~${quotaGB} GB)`;
-      } else {
-        sub.textContent = "Almacenamiento nativo activo";
-      }
-    }
-
-    /* MODAL DE CONFIRMACIÓN CUSTOMIZADO (SISTEMA FLOTANTE CENTRAL) */
-    let customModalCallback = null;
-
-    function openCustomModal({ title, message, iconSvg, confirmText, onConfirm }) {
-      document.getElementById('customModalTitle').textContent = title;
-      document.getElementById('customModalBody').textContent = message;
-      if (iconSvg) document.getElementById('customModalIcon').innerHTML = iconSvg;
-      
-      const confirmBtn = document.getElementById('customModalConfirmBtn');
-      confirmBtn.textContent = confirmText || 'Confirmar';
-      
-      customModalCallback = onConfirm;
-
-      confirmBtn.onclick = () => {
-        if (customModalCallback) customModalCallback();
-        closeCustomModal();
-      };
-
-      document.getElementById('customModalOverlay').classList.add('active');
-    }
-
-    function closeCustomModal() {
-      document.getElementById('customModalOverlay').classList.remove('active');
-      customModalCallback = null;
-    }
-
-    function promptClearCache() {
-      openCustomModal({
-        title: "¿Eliminar Caché?",
-        message: "¿Estás seguro de eliminar la caché? Esta acción liberará memoria temporal borrando archivos multimedia almacenados. Los videos tardarán un instante más en volver a cargar.",
-        iconSvg: `<svg viewBox="0 0 24 24"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/></svg>`,
-        confirmText: "Liberar Ahora",
-        onConfirm: async () => {
-          if ('caches' in window) {
-            const keys = await caches.keys();
-            await Promise.all(keys.map(k => caches.delete(k)));
-          }
-          updateStorageMetricsDisplay();
-        }
-      });
-    }
-
-    function promptClearData() {
-      openCustomModal({
-        title: "¿Eliminar Datos del Sistema?",
-        message: "¿Estás seguro de eliminar los datos? Esto borrará de forma permanente tus me gusta guardados, configuraciones del reproductor e historial de la app.",
-        iconSvg: `<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
-        confirmText: "Borrar Todo",
-        onConfirm: async () => {
-          const dbs = await indexedDB.databases();
-          dbs.forEach(db => indexedDB.deleteDatabase(db.name));
-          location.reload();
-        }
-      });
-    }
-
-    let currentDataSaver = 'standard';
-
-    async function setDataSaverMode(mode) {
-      currentDataSaver = mode;
-      await novaDB.setSetting('dataSaverMode', mode);
-
-      document.getElementById('saverStandard').classList.toggle('active', mode === 'standard');
-      document.getElementById('saverExtreme').classList.toggle('active', mode === 'extreme');
-
-      applyDataSaverToActiveVideos();
-    }
-
-    function applyDataSaverToActiveVideos() {
-      const videos = document.querySelectorAll('.video-player');
-      videos.forEach(v => {
-        if (currentDataSaver === 'extreme') {
-          v.playbackRate = 0.75;
-          v.preload = "none";
-        } else {
-          v.playbackRate = 1.0;
-          v.preload = "metadata";
-        }
-      });
-    }
-
-    const SPEEDS = [1, 1.5, 2, 0.5];
-
-    function getFeedList() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const targetId = urlParams.get('v');
-
-      let feed = [...VIDEO_DATABASE];
-
-      if (targetId) {
-        const targetIndex = feed.findIndex(item => item.id === targetId);
-        if (targetIndex !== -1) {
-          const [targetVideo] = feed.splice(targetIndex, 1);
-          feed = shuffleArray(feed);
-          feed.unshift(targetVideo);
-          return feed;
-        }
-      }
-
-      return shuffleArray(feed);
-    }
-
-    function shuffleArray(array) {
-      const arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
-    function renderFeed() {
-      const appContainer = document.getElementById('appContainer');
-      const feedData = getFeedList();
-
-      appContainer.innerHTML = feedData.map(v => `
-        <section class="feed-item" data-id="${v.id}" data-src="${v.src}">
-          <div class="video-wrapper">
-            <video class="video-player" loop playsinline preload="metadata" src="${v.src}"></video>
-          </div>
-          
-          <div class="state-icon-overlay"></div>
-
-          <div class="ui-layer">
-            <div class="top-bar">
-              <button class="search-trigger" onclick="toggleSearchModal(true)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-              </button>
-              <div class="top-tabs">
-                <span class="active">Para ti</span>
-              </div>
-              <div class="top-bar-right">
-                <button class="settings-trigger" onclick="openSettingsModal()" title="Ajustes">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-                </button>
-                <button class="seen-trigger" onclick="toggleSeenModal(true)" title="Visto">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                </button>
-              </div>
-            </div>
-
-            <div class="video-info">
-              <div class="username">@${v.username}</div>
-              <div class="description-container">
-                <div class="description">${v.description}</div>
-                <button class="btn-toggle-desc" onclick="toggleDescription(this)">Ver más</button>
-              </div>
-            </div>
-
-            <div class="side-bar">
-              <button class="action-btn btn-like" onclick="toggleLike(this, '${v.id}')">
-                <div class="icon-box">
-                  <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                </div>
-              </button>
-
-              <button class="action-btn btn-download" onclick="requestDownload('${v.id}')">
-                <div class="icon-box">
-                  <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                </div>
-              </button>
-
-              <button class="action-btn" onclick="shareVideo('${v.id}')">
-                <div class="icon-box">
-                  <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.70s-.04-.47-.09-.70l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.70L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
-                </div>
-              </button>
-
-              <button class="action-btn btn-speed" onclick="changePlaybackSpeed(this)">
-                <div class="icon-box">
-                  <span class="speed-badge">1x</span>
-                </div>
-                <span class="btn-label">Velocidad</span>
-              </button>
-
-              <button class="action-btn" onclick="togglePlayerMode(true)">
-                <div class="icon-box">
-                  <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-                </div>
-                <span class="btn-label">Jugador</span>
-              </button>
-            </div>
-
-            <div class="custom-player-bar">
-              <button class="mute-btn" onclick="toggleMute(this)">
-                <svg class="icon-audio" viewBox="0 0 24 24"></svg>
-              </button>
-              
-              <div class="progress-wrapper">
-                <div class="progress-track">
-                  <div class="progress-fill"></div>
-                </div>
-                <input type="range" class="seek-slider" min="0" max="100" value="0" step="0.1" oninput="onSeek(event, this)">
-              </div>
-
-              <div class="time-display">0:00</div>
-            </div>
-
-          </div>
-        </section>
-      `).join('');
-    }
-
-    async function initApp() {
-      await novaDB.init();
-
-      const savedMode = await novaDB.getSetting('dataSaverMode') || 'standard';
-      setDataSaverMode(savedMode);
-
-      renderFeed();
-
-      const container = document.getElementById('appContainer');
-      const feedItems = document.querySelectorAll('.feed-item');
-
-      feedItems.forEach(async (item) => {
-        const id = item.getAttribute('data-id');
-        const isLiked = await novaDB.getLike(id);
-        if (isLiked) {
-          const btnLike = item.querySelector('.btn-like');
-          if (btnLike) btnLike.classList.add('liked');
-        }
+      // Gestos de Deslizar para Responder
+      let touchStartX = 0;
+      el.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive: true});
+      el.addEventListener('touchmove', e => {
+        let diff = e.touches[0].clientX - touchStartX;
+        if (diff > 0 && diff < 60) el.style.transform = `translateX(${diff}px)`;
+      }, {passive: true});
+      el.addEventListener('touchend', e => {
+        if (parseInt(el.style.transform.replace('translateX(', '') || 0) > 30) setReplyTarget(data);
+        el.style.transform = 'translateX(0px)';
       });
 
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          const video = entry.target.querySelector('video');
-          const id = entry.target.getAttribute('data-id');
-
-          if (entry.isIntersecting) {
-            window.history.replaceState(null, null, `?v=${id}`);
-            
-            if (currentDataSaver === 'extreme') {
-              video.playbackRate = 0.75;
-            }
-
-            requestAnimationFrame(() => {
-              video.play().catch(() => {
-                video.muted = true;
-                video.play();
-              });
-            });
-            syncMuteIcon(entry.target);
-          } else {
-            video.pause();
-            video.currentTime = 0;
-          }
-        });
-      }, { root: container, threshold: 0.6 });
-
-      feedItems.forEach(item => {
-        observer.observe(item);
-
-        const video = item.querySelector('video');
-        const progressFill = item.querySelector('.progress-fill');
-        const slider = item.querySelector('.seek-slider');
-        const timeDisplay = item.querySelector('.time-display');
-        const desc = item.querySelector('.description');
-        const btnToggleDesc = item.querySelector('.btn-toggle-desc');
-
-        if (desc.scrollHeight > desc.clientHeight) {
-          btnToggleDesc.style.display = 'inline-block';
-        }
-
-        let isSeeking = false;
-
-        slider.addEventListener('mousedown', () => isSeeking = true);
-        slider.addEventListener('touchstart', () => isSeeking = true);
-        slider.addEventListener('mouseup', () => isSeeking = false);
-        slider.addEventListener('touchend', () => isSeeking = false);
-
-        video.addEventListener('timeupdate', () => {
-          if (video.duration && !isSeeking) {
-            const progress = (video.currentTime / video.duration) * 100;
-            progressFill.style.width = `${progress}%`;
-            slider.value = progress;
-            timeDisplay.textContent = formatTime(video.duration - video.currentTime);
-          }
-        });
-
-        video.addEventListener('loadedmetadata', () => {
-          syncMuteIcon(item);
-        });
-
-        let clickTimer = null;
-        let clickCount = 0;
-
-        item.addEventListener('click', (e) => {
-          if (e.target.closest('.side-bar') || e.target.closest('.custom-player-bar') || e.target.closest('.top-bar')) {
-            return;
-          }
-
-          if (document.body.classList.contains('player-mode')) {
-            togglePlayerMode(false);
-            return;
-          }
-
-          clickCount++;
-
-          if (clickCount === 1) {
-            clickTimer = setTimeout(() => {
-              if (video.paused) {
-                video.play();
-                showOverlayIcon(item, 'play');
-              } else {
-                video.pause();
-                showOverlayIcon(item, 'pause');
-              }
-              clickCount = 0;
-            }, 260);
-          } else if (clickCount >= 2) {
-            clearTimeout(clickTimer);
-            clickCount = 0;
-
-            spawnFloatingHeart(e.clientX, e.clientY, item);
-
-            const likeBtn = item.querySelector('.btn-like');
-            if (!likeBtn.classList.contains('liked')) {
-              const id = item.getAttribute('data-id');
-              toggleLike(likeBtn, id);
-            }
-          }
-        });
-      });
-    }
-
-    function changePlaybackSpeed(btn) {
-      const item = btn.closest('.feed-item');
-      const video = item.querySelector('video');
-      const badge = btn.querySelector('.speed-badge');
-
-      let currentSpeed = video.playbackRate;
-      let currentIndex = SPEEDS.indexOf(currentSpeed);
-      
-      if (currentIndex === -1) currentIndex = 0;
-      
-      const nextIndex = (currentIndex + 1) % SPEEDS.length;
-      const newSpeed = SPEEDS[nextIndex];
-
-      video.playbackRate = newSpeed;
-      badge.textContent = `${newSpeed}x`;
-    }
-
-    function requestDownload(videoId) {
-      const videoData = VIDEO_DATABASE.find(v => v.id === videoId);
-      if (videoData) {
-        downloadManager.startDownload(videoData);
-      }
-    }
-
-    function showOverlayIcon(item, state) {
-      const overlay = item.querySelector('.state-icon-overlay');
-      const iconPlay = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
-      const iconPause = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
-
-      overlay.innerHTML = state === 'play' ? iconPlay : iconPause;
-      overlay.classList.add('active');
-
+      // Programar la remoción local automática al cumplirse las 3 horas
+      const remaining = EXPIRATION_MS - (Date.now() - data.timestamp);
       setTimeout(() => {
-        overlay.classList.remove('active');
-      }, 500);
+        el.remove();
+        remove(ref(db, `global_chat/${key}`));
+      }, remaining);
     }
 
-    function syncMuteIcon(item) {
-      const video = item.querySelector('video');
-      const svg = item.querySelector('.icon-audio');
-      if (!svg) return;
-
-      if (video.muted) {
-        svg.innerHTML = `<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>`;
-      } else {
-        svg.innerHTML = `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>`;
+    let reactionsHTML = '';
+    if (data.reactions) {
+      const counts = {};
+      Object.values(data.reactions).forEach(emoji => { if (emoji) counts[emoji] = (counts[emoji] || 0) + 1; });
+      for (const [emoji, count] of Object.entries(counts)) {
+        reactionsHTML += `<div class="reaction-pill" onclick="window.sendReaction('${key}', '${emoji}')">${emoji} ${count}</div>`;
       }
     }
 
-    function toggleMute(btn) {
-      const item = btn.closest('.feed-item');
-      const video = item.querySelector('video');
-      video.muted = !video.muted;
-      syncMuteIcon(item);
-    }
-
-    function formatTime(seconds) {
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
-      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }
-
-    function onSeek(event, slider) {
-      const item = slider.closest('.feed-item');
-      const video = item.querySelector('video');
-      const progressFill = item.querySelector('.progress-fill');
-      const timeDisplay = item.querySelector('.time-display');
-
-      const targetTime = (slider.value / 100) * video.duration;
-      progressFill.style.width = `${slider.value}%`;
-      timeDisplay.textContent = formatTime(video.duration - targetTime);
-
-      requestAnimationFrame(() => {
-        if ('fastSeek' in video) {
-          video.fastSeek(targetTime);
-        } else {
-          video.currentTime = targetTime;
-        }
-      });
-    }
-
-    async function toggleLike(btn, id) {
-      btn.classList.toggle('liked');
-      const isLiked = btn.classList.contains('liked');
-      await novaDB.setLike(id, isLiked);
-      if (navigator.vibrate) navigator.vibrate(40);
-    }
-
-    function shareVideo(id) {
-      const shareUrl = `${window.location.origin}${window.location.pathname}?v=${id}`;
-      if (navigator.share) {
-        navigator.share({ title: 'NOVA Video', url: shareUrl }).catch(() => {});
-      } else {
-        navigator.clipboard.writeText(shareUrl);
-        alert('Enlace copiado al portapapeles');
-      }
-    }
-
-    function spawnFloatingHeart(x, y, parent) {
-      const heart = document.createElement('div');
-      heart.className = 'floating-heart';
-      heart.style.left = `${x}px`;
-      heart.style.top = `${y}px`;
-      heart.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
-      
-      parent.appendChild(heart);
-      setTimeout(() => heart.remove(), 800);
-    }
-
-    function togglePlayerMode(enable) {
-      document.body.classList.toggle('player-mode', enable);
-    }
-
-    function toggleDescription(btn) {
-      const desc = btn.previousElementSibling;
-      desc.classList.toggle('expanded');
-      btn.textContent = desc.classList.contains('expanded') ? 'Ver menos' : 'Ver más';
-    }
-
-    function toggleSearchModal(show) {
-      const modal = document.getElementById('searchModal');
-      modal.classList.toggle('active', show);
-      if (show) {
-        document.getElementById('searchInput').focus();
-        handleSearch();
-      }
-    }
-
-    async function toggleSeenModal(show) {
-      const modal = document.getElementById('seenModal');
-      modal.classList.toggle('active', show);
-      if (show) {
-        await renderSeenVideos();
-      }
-    }
-
-    function handleSearch() {
-      const query = document.getElementById('searchInput').value.toLowerCase().trim();
-      const resultsContainer = document.getElementById('searchResults');
-      resultsContainer.innerHTML = '';
-
-      const itemsToRender = query === '' 
-        ? VIDEO_DATABASE 
-        : VIDEO_DATABASE.filter(v => {
-            const desc = v.description.toLowerCase();
-            const user = v.username.toLowerCase();
-            return desc.includes(query) || user.includes(query);
-          });
-
-      if (itemsToRender.length === 0) {
-        resultsContainer.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #666; padding: 40px 0;">No se encontraron resultados</div>`;
-        return;
-      }
-
-      itemsToRender.forEach((v) => {
-        const card = createGridCard(v);
-        resultsContainer.appendChild(card);
-      });
-    }
-
-    async function renderSeenVideos() {
-      const resultsContainer = document.getElementById('seenResults');
-      resultsContainer.innerHTML = '';
-      
-      const likedIds = await novaDB.getAllLikes();
-      const likedVideos = VIDEO_DATABASE.filter(v => likedIds.includes(v.id));
-
-      if (likedVideos.length === 0) {
-        resultsContainer.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #666; padding: 40px 0;">Aún no le has dado Like a ningún video</div>`;
-        return;
-      }
-
-      likedVideos.forEach((v) => {
-        const card = createGridCard(v, () => toggleSeenModal(false), true);
-        resultsContainer.appendChild(card);
-      });
-    }
-
-    async function removeLikeFromSeen(event, id) {
-      event.stopPropagation();
-      await novaDB.setLike(id, false);
-
-      const feedItem = document.querySelector(`.feed-item[data-id="${id}"]`);
-      if (feedItem) {
-        const likeBtn = feedItem.querySelector('.btn-like');
-        if (likeBtn) likeBtn.classList.remove('liked');
-      }
-
-      await renderSeenVideos();
-    }
-
-    function createGridCard(v, onCardClick = null, showUnlikeBtn = false) {
-      const card = document.createElement('div');
-      card.className = 'tt-card';
-      card.onclick = () => {
-        if (onCardClick) onCardClick();
-        toggleSearchModal(false);
-        const target = document.querySelector(`.feed-item[data-id="${v.id}"]`);
-        if (target) target.scrollIntoView({ behavior: 'smooth' });
-      };
-
-      card.innerHTML = `
-        <div class="tt-thumb-box">
-          <video src="${v.src}#t=0.5" preload="metadata" muted></video>
-        </div>
-        <div class="tt-card-info">
-          <div class="tt-card-desc-box">${downloadManager.escapeHtml(v.description)}</div>
-          <div class="tt-card-footer">
-            ${showUnlikeBtn ? `
-              <button class="tt-unlike-btn" onclick="removeLikeFromSeen(event, '${v.id}')">
-                Quitar Like
-              </button>
-            ` : '<span></span>'}
-            <button class="tt-share-btn" onclick="event.stopPropagation(); shareVideo('${v.id}')">
-              <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.70s-.04-.47-.09-.70l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.70L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
-            </button>
-          </div>
+    let replyHTML = '';
+    if (data.replyTo) {
+      replyHTML = `
+        <div class="reply-quote">
+          <div class="reply-quote-author">${sanitize(data.replyTo.author)}</div>
+          <div class="reply-quote-text">${sanitize(data.replyTo.text)}</div>
         </div>
       `;
-      return card;
     }
 
-    document.addEventListener('DOMContentLoaded', initApp);
-  </script>
+    let imageHTML = '';
+    if (data.image) {
+      imageHTML = `<img src="${data.image}" class="msg-img-thumb" alt="Imagen enviada" onclick="window.openImageModal('${data.image}')">`;
+    }
+
+    const deleteHTML = isOwn ? `
+      <button class="delete-btn" onclick="window.deleteMsg('${key}')" title="Eliminar del servidor">
+        <iconify-icon icon="solar:trash-bin-trash-bold" style="font-size: 0.72rem;"></iconify-icon>
+      </button>
+    ` : '';
+
+    const timeStr = formatTime(data.timestamp);
+    const expireStr = getRemainingTimeString(data.timestamp);
+
+    el.innerHTML = `
+      <span class="msg-author">${sanitize(data.author)}</span>
+      <div class="msg-bubble-wrapper" onclick="window.triggerReply('${key}')">
+        <div class="reaction-trigger-zone">
+          <span class="react-opt" onclick="window.sendReaction('${key}', '👍')">👍</span>
+          <span class="react-opt" onclick="window.sendReaction('${key}', '❤️')">❤️</span>
+          <span class="react-opt" onclick="window.sendReaction('${key}', '😂')">😂</span>
+          <span class="react-opt" onclick="window.sendReaction('${key}', '🔥')">🔥</span>
+          <span class="react-opt" onclick="window.sendReaction('${key}', '💩')">💩</span>
+        </div>
+        <div class="msg-bubble">
+          ${replyHTML}
+          ${data.text ? sanitize(data.text) : ''}
+          ${imageHTML}
+        </div>
+      </div>
+      <div class="active-reactions">${reactionsHTML}</div>
+      <div class="msg-meta">
+        <span>${timeStr}</span>
+        <span>•</span>
+        <span class="expiry-tag">
+          <iconify-icon icon="solar:clock-circle-bold" style="font-size: 0.7rem;"></iconify-icon>
+          ${expireStr}
+        </span>
+        ${deleteHTML}
+      </div>
+    `;
+
+    el.dataset.payload = JSON.stringify(data);
+    viewport.scrollTop = viewport.scrollHeight;
+  }
+
+  // Eventos Firebase
+  onChildAdded(messagesRef, snap => createOrUpdateMessage(snap.val(), snap.key));
+  onChildChanged(messagesRef, snap => createOrUpdateMessage(snap.val(), snap.key));
+  onChildRemoved(messagesRef, snap => {
+    const el = document.getElementById(`m-${snap.key}`);
+    if (el) el.remove();
+  });
+
+  window.sendReaction = (key, emoji) => {
+    const reactRef = ref(db, `global_chat/${key}/reactions/${user.uid}`);
+    runTransaction(reactRef, curr => (curr === emoji ? null : emoji));
+  };
+
+  // Eliminación Real del Servidor Firebase
+  window.deleteMsg = (key) => {
+    remove(ref(db, `global_chat/${key}`));
+  };
+
+  window.triggerReply = (key) => {
+    const el = document.getElementById(`m-${key}`);
+    if (el && el.dataset.payload) setReplyTarget(JSON.parse(el.dataset.payload));
+  };
+
+  // Visor Pantalla Completa
+  const imageModal = document.getElementById('imageModal');
+  const modalImage = document.getElementById('modalImage');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+
+  window.openImageModal = (src) => {
+    modalImage.src = src;
+    downloadBtn.href = src;
+    downloadBtn.setAttribute('download', `nova_img_${Date.now()}.png`);
+    imageModal.classList.add('active');
+  };
+
+  function closeImageModal() {
+    imageModal.classList.remove('active');
+  }
+
+  closeModalBtn.onclick = closeImageModal;
+  imageModal.onclick = (e) => {
+    if (e.target === imageModal) closeImageModal();
+  };
+
+  function sanitize(str) {
+    if (!str) return '';
+    return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+  }
+</script>
 </body>
 </html>
